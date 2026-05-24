@@ -1,0 +1,33 @@
+{
+  "name": "pi-k2",
+  "version": "0.1.0",
+  "description": "k3-2o's pi coding agent extensions, themes, and skills",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi-skill",
+    "pi-theme"
+  ],
+  "license": "MIT",
+  "author": "k3-2o",
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "themes": [
+      "./themes"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
