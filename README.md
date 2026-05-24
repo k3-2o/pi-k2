@@ -9,7 +9,7 @@
 |------|-------------|
 | `ask-user-question.ts` | Ask the user multiple-choice questions |
 | `auto-commit-on-exit.ts` | Auto-commit git changes on exit |
-| `btw.ts` | Browser tools and web interactions |
+| `btw.ts` | Side-conversation hover window — talk to the agent while pi is running |
 | `clipboard.ts` | Copy text to system clipboard |
 | `multi-edit.ts` | Multi-file surgical edits |
 | `omnisearch-gateway.ts` | Web search, discovery, and extraction |
