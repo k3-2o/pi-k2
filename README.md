@@ -9,8 +9,6 @@
 | File | Description | Source |
 |------|-------------|--------|
 | `ask-user-question.ts` | Ask the user multiple-choice questions | [pi-k2](https://github.com/k3-2o/pi-k2) |
-| `auto-commit-on-exit.ts` | Auto-commit git changes on exit | [pi-k2](https://github.com/k3-2o/pi-k2) |
-| `btw.ts` | Side-conversation hover window — talk to the agent while pi is running | [pi-k2](https://github.com/k3-2o/pi-k2) |
 | `clipboard.ts` | Copy text to system clipboard | [pi-k2](https://github.com/k3-2o/pi-k2) |
 | `multi-edit.ts` | Multi-file surgical edits | [pi-k2](https://github.com/k3-2o/pi-k2) |
 | `omnisearch-gateway.ts` | Web search, discovery, and extraction | [pi-k2](https://github.com/k3-2o/pi-k2) |
