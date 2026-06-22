@@ -25,8 +25,8 @@
 
 | Directory | Description | Source |
 |-----------|-------------|--------|
-| `prism/` | Structural code analysis — cyclomatic complexity, nesting depth, dead functions, code clones, and more across 12 languages | [k3-2o/prism](https://github.com/k3-2o/prism) |
-| `scope/` | Codebase exploration — entry points, symbol maps, and test/source pairing across 25+ languages | [k3-2o/scope](https://github.com/k3-2o/scope) |
+| `prism/` | Structural code analysis — cyclomatic complexity, nesting depth, dead functions, code clones, and more across 12 languages. Use with CLI tool [`prism`](https://github.com/k3-2o/prism). | [k3-2o/prism](https://github.com/k3-2o/prism) |
+| `scope/` | Codebase exploration — entry points, symbol maps, and test/source pairing across 25+ languages. Use with CLI tool [`scope`](https://github.com/k3-2o/scope). | [k3-2o/scope](https://github.com/k3-2o/scope) |
 | `skill-creator/` | Create, refactor, validate, and package Agent Skills | [pi-k2](https://github.com/k3-2o/pi-k2) |
 | `youtube-transcript/` | Fetch YouTube video transcripts and summarize | — |
 
@@ -45,8 +45,16 @@ pi install git:github.com/k3-2o/pi-k2
 
 Also install the standalone packages:
 
+| Package | Description |
+|---------|-------------|
+| [`pi-read-image`](https://github.com/k3-2o/pi-read-image) | Local OCR for Pi — extracts text from screenshots and code images |
+| [`pi-chrollo`](https://github.com/k3-2o/pi-chrollo) | Agentic memory for Pi — verbatim session capture + grep retrieval |
+| [`pi-move`](https://github.com/k3-2o/pi-move) | Pi extension — `/move` command to switch directories from inside Pi |
+
 ```bash
 pi install git:github.com/k3-2o/pi-read-image
+pi install git:github.com/k3-2o/pi-chrollo
+pi install git:github.com/k3-2o/pi-move
 ```
 
 ## License
