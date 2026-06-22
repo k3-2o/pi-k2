@@ -6,29 +6,29 @@
 
 ### Extensions
 
-| File | Description | Source |
-|------|-------------|--------|
-| `ask-user-question.ts` | Ask the user multiple-choice questions | [pi-k2](https://github.com/k3-2o/pi-k2) |
-| `clipboard.ts` | Copy text to system clipboard | [pi-k2](https://github.com/k3-2o/pi-k2) |
-| `web_search.ts` | Web search, discovery, and extraction | [pi-k2](https://github.com/k3-2o/pi-k2) |
+| File | Description |
+|------|-------------|
+| `ask-user-question.ts` | Ask the user multiple-choice questions |
+| `clipboard.ts` | Copy text to system clipboard |
+| `web_search.ts` | Web search, discovery, and extraction |
 
 ### Themes
 
-| File | Description | Source |
-|------|-------------|--------|
-| `catppuccin-mocha.json` | Catppuccin Mocha | [pi-k2](https://github.com/k3-2o/pi-k2) |
-| `dracula.json` | Dracula | [pi-k2](https://github.com/k3-2o/pi-k2) |
-| `my-catppuccin-mocha.json` | Custom Catppuccin Mocha variant | [pi-k2](https://github.com/k3-2o/pi-k2) |
-| `nightowl.json` | Night Owl | [pi-k2](https://github.com/k3-2o/pi-k2) |
+| File | Description |
+|------|-------------|
+| `catppuccin-mocha.json` | Catppuccin Mocha |
+| `dracula.json` | Dracula |
+| `my-catppuccin-mocha.json` | Custom Catppuccin Mocha variant |
+| `nightowl.json` | Night Owl |
 
 ### Skills
 
-| Directory | Description | Source |
-|-----------|-------------|--------|
-| `prism/` | Structural code analysis — cyclomatic complexity, nesting depth, dead functions, code clones, and more across 12 languages. Use with CLI tool [`prism`](https://github.com/k3-2o/prism). | [k3-2o/prism](https://github.com/k3-2o/prism) |
-| `scope/` | Codebase exploration — entry points, symbol maps, and test/source pairing across 25+ languages. Use with CLI tool [`scope`](https://github.com/k3-2o/scope). | [k3-2o/scope](https://github.com/k3-2o/scope) |
-| `skill-creator/` | Create, refactor, validate, and package Agent Skills | [pi-k2](https://github.com/k3-2o/pi-k2) |
-| `youtube-transcript/` | Fetch YouTube video transcripts and summarize | — |
+| Directory | Description |
+|-----------|-------------|
+| `prism/` | Structural code analysis — cyclomatic complexity, nesting depth, dead functions, code clones, and more across 12 languages. Use with CLI tool [`prism`](https://github.com/k3-2o/prism). |
+| `scope/` | Codebase exploration — entry points, symbol maps, and test/source pairing across 25+ languages. Use with CLI tool [`scope`](https://github.com/k3-2o/scope). |
+| `skill-creator/` | Create, refactor, validate, and package Agent Skills |
+| `youtube-transcript/` | Fetch YouTube video transcripts and summarize |
 
 ### Prompts
 
