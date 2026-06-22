@@ -10,8 +10,7 @@
 |------|-------------|--------|
 | `ask-user-question.ts` | Ask the user multiple-choice questions | [pi-k2](https://github.com/k3-2o/pi-k2) |
 | `clipboard.ts` | Copy text to system clipboard | [pi-k2](https://github.com/k3-2o/pi-k2) |
-| `multi-edit.ts` | Multi-file surgical edits | [pi-k2](https://github.com/k3-2o/pi-k2) |
-| `omnisearch-gateway.ts` | Web search, discovery, and extraction | [pi-k2](https://github.com/k3-2o/pi-k2) |
+| `web_search.ts` | Web search, discovery, and extraction | [pi-k2](https://github.com/k3-2o/pi-k2) |
 
 ### Themes
 
@@ -48,7 +47,6 @@ Also install the standalone packages:
 
 ```bash
 pi install git:github.com/k3-2o/pi-read-image
-pi install git:github.com/k3-2o/scope
 ```
 
 ## License
