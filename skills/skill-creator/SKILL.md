@@ -1,226 +1,378 @@
 ---
 name: skill-creator
-description: Create, refactor, and productionize Agent Skills with an engineering-first workflow. Use when users ask to create a skill, improve SKILL.md quality, add reusable scripts/references/assets, set up validation and packaging, add tests, benchmark skill behavior, or prepare a releasable .skill artifact.
-compatibility: Python 3.8+
+description: "Create, validate, and iterate on Pi skills. Use when the user wants to create a new skill, update an existing skill, validate a skill folder, or package improvements to a skill. Trigger words: skill, SKILL.md, init_skill, quick_validate, scaffold, new skill."
+compatibility: "Scripts in scripts/, run from this directory."
 ---
 
-# Skill Creator (MatrixAgent Engineering Edition)
+# Skill Creator
 
-Build skills like software products, not one-off prompts.
+This skill provides guidance for creating effective skills that extend Pi's capabilities with specialized knowledge, workflows, or tool integrations.
 
-This skill is for creating or improving a skill with explicit quality gates, repeatable validation, test coverage, packaging hygiene, and release-ready outputs.
+## About Skills
 
-## Operating Principles
+Skills are modular, self-contained folders that extend Pi by providing specialized knowledge, workflows, and tools. They transform Pi from a general-purpose agent into a specialized agent equipped with procedural knowledge about specific domains or tasks.
 
-1. **Engineer for repeatability** — Prefer scripts for fragile operations.
-2. **Ship in slices** — Draft fast, iterate with objective feedback.
-3. **Keep context lean** — Detail goes to `references/`.
-4. **Quality gates before packaging** — Validate → Test → Package.
-5. **Security by default** — No secrets or unsafe constructs.
+Pi implements the [Agent Skills standard](https://agentskills.io/specification). Skills load on-demand: the agent sees the name and description at startup (always in context), and reads the full SKILL.md body only when the skill triggers.
 
-See [Engineering Standards](skill-creator/references/engineering-standards.md) for detailed guidance.
+### What Skills Provide
 
-## Directory Contract
+1. Specialized workflows — Multi-step procedures for specific domains
+2. Tool integrations — Instructions for working with CLI tools or APIs
+3. Domain expertise — Project-specific knowledge, conventions, business logic
+4. Bundled resources — Scripts and reference docs for complex tasks
 
-Use this structure unless there is a good reason not to:
+### How Pi Loads Skills
 
-```text
-skill-name/
-├── SKILL.md
-├── _meta.json                # required: {"id":"...","version":"..."}
-├── scripts/                  # target skill's automation (optional)
-├── references/               # optional detailed docs/schemas
-└── assets/                   # optional output assets/templates
+Pi discovers skills from these locations:
+
+- **Global:** `~/.pi/agent/skills/`, `~/.agents/skills/`
+- **Project:** `.pi/skills/`, `.agents/skills/` (cwd and ancestor dirs up to git root)
+- **Packages:** `skills/` directories or `pi.skills` entries in `package.json`
+- **Settings:** `skills` array in `settings.json`
+- **CLI:** `--skill <path>` (repeatable, additive even with `--no-skills`)
+
+In `~/.pi/agent/skills/` and `.pi/skills/`, direct root `.md` files are discovered as individual skills. In all locations, directories containing `SKILL.md` are discovered recursively.
+
+Disable discovery with `--no-skills`. Use `--skill <path>` to load specific skills explicitly.
+
+### Skill Commands
+
+Skills register as `/skill:name` commands:
+
+```
+/skill:brave-search           # Load and execute the skill
+/skill:pdf-tools extract      # Load skill with arguments
 ```
 
-> Note: `skill-creator/scripts/` contains skill-creator's own tooling; do not replicate these into target skills.
->
-> **Convention:** `_meta.json` with `id` and `version` is a skill-creator convention for tracking identity. It is not part of the Agent Skills spec, but this skill requires it for all skills it creates.
+Arguments after the command are appended to the skill content as `User: <args>`.
 
-## End-to-End Workflow
+Toggle via `enableSkillCommands` in settings (default: true in interactive mode).
 
-Follow these phases in order unless the user asks to skip.
+## Core Principles
 
-### Phase 1: Discovery and Scope Lock
+### Concise is Key
 
-Clarify:
-- Target outcomes (what the skill enables)
-- Trigger boundaries (when it should and should not trigger)
-- Expected outputs/artifacts
-- Deterministic vs heuristic parts (what should become scripts)
-- Definition of done (what "ready" means)
+The context window is shared. Skills compete with system prompt, conversation history, other skills' metadata, and the actual user request.
 
-> Tip: User may optionally provide a `rough_sketch.md` at project root describing the skill vision. Read this first to align understanding before asking clarifying questions.
+**Default assumption: Pi is already very smart.** Only add context Pi doesn't already have. Challenge each piece of information: "Does Pi really need this explanation?" and "Does this paragraph justify its token cost?"
 
-Output of this phase:
-- Final skill name (hyphen-case, <= 64 chars)
-- Skill id generated by `skill-creator/scripts/generate_skill_id.py` (new skill only)
-- Draft frontmatter description with explicit trigger phrases
-- Initial acceptance criteria list
+Prefer concise examples over verbose explanations.
 
-### Phase 2: Skill Architecture
+### Set Appropriate Degrees of Freedom
 
-Design three layers:
-1. **Metadata layer**: `name`, `description` for trigger quality
-2. **Execution layer**: concise workflow in `SKILL.md`
-3. **Resource layer**: scripts/references/assets for heavy details
+Match specificity to the task's fragility and variability:
 
-Consider adding extras based on skill complexity:
-- **Simple skills**: `SKILL.md` + `_meta.json` only
-- **Moderate skills**: add `references/` for schemas/examples
-- **Complex skills**: add `scripts/` for deterministic/fragile/multiturn operations
-- **Asset-heavy skills**: add `assets/` for templates/media
+- **High freedom (text-based instructions):** Use when multiple approaches are valid, decisions depend on context, or heuristics guide the approach.
+- **Medium freedom (pseudocode or scripts with parameters):** Use when a preferred pattern exists, some variation is acceptable, or configuration affects behavior.
+- **Low freedom (specific scripts, few parameters):** Use when operations are fragile and error-prone, consistency is critical, or a specific sequence must be followed.
 
-When adding extras, state the path in SKILL.md using `skill-name/<path>` format (e.g., `skill-name/scripts/validate.py`). Only add extras if genuinely necessary—avoid folders/files that don't serve a clear purpose.
+Pi explores a path — narrow bridges need guardrails (low freedom), open fields allow many routes (high freedom).
 
-Rules:
-- Put all "when to use" logic in frontmatter `description`.
-- Do not duplicate large docs in both `SKILL.md` and `references/`.
-- If a workflow is fragile, provide script-based execution path.
-- Every skill must include `_meta.json` with `id` and `version`.
+### Progressive Disclosure
 
-### Phase 3: Scaffold and Implement
+Skills use a three-level loading system to manage context efficiently:
 
-**Option A: Use init script (recommended)**
+1. **Metadata (name + description)** — Always in context (~100 words)
+2. **SKILL.md body** — Loaded when skill triggers (<500 lines recommended)
+3. **Bundled resources** — Loaded as needed by reading references/ or executing scripts/
+
+#### Progressive Disclosure Patterns
+
+Keep SKILL.md body under 500 lines. Split variant-specific details into reference files. When splitting, reference them from SKILL.md and describe clearly when to read them.
+
+**Pattern 1: High-level guide with references**
+
+```markdown
+# PDF Processing
+
+## Quick start
+
+Extract text with pdfplumber:
+[code example]
+
+## Advanced features
+
+- **Form filling**: See [references/forms.md](references/forms.md)
+- **API reference**: See [references/api.md](references/api.md)
+```
+
+Pi reads forms.md or api.md only when needed.
+
+**Pattern 2: Domain-specific organization**
+
+```
+bigquery-skill/
+├── SKILL.md (overview and navigation)
+└── references/
+    ├── finance.md
+    ├── sales.md
+    ├── product.md
+    └── marketing.md
+```
+
+When the user asks about sales metrics, Pi only reads sales.md.
+
+**Pattern 3: Conditional details**
+
+```markdown
+# DOCX Processing
+
+## Creating documents
+
+Use docx-js for new documents. See [references/docx-js.md](references/docx-js.md).
+
+## Editing documents
+
+For simple edits, modify the XML directly.
+
+**For tracked changes**: See [references/redlining.md](references/redlining.md)
+```
+
+**Guidelines:**
+- Keep references one level deep from SKILL.md
+- For files >100 lines, include a table of contents at the top
+- Avoid duplication — information lives in SKILL.md OR references/, not both
+
+## Anatomy of a Skill
+
+```
+my-skill/
+├── SKILL.md (required)
+│   ├── YAML frontmatter (required)
+│   │   ├── name: (required)
+│   │   ├── description: (required)
+│   │   ├── compatibility: (optional, max 500 chars)
+│   │   ├── license: (optional)
+│   │   ├── metadata: (optional)
+│   │   ├── allowed-tools: (optional, experimental)
+│   │   └── disable-model-invocation: (optional, true/false)
+│   └── Markdown body (required)
+├── scripts/ (optional)
+│   └── helper scripts for deterministic/repeated tasks
+└── references/ (optional)
+    └── detailed docs loaded on-demand
+```
+
+### SKILL.md (required)
+
+**Frontmatter (YAML):** Contains `name` and `description` — the only fields Pi reads to determine when the skill triggers. Be specific and comprehensive.
+
+Pi supports these frontmatter fields:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Max 64 chars. Lowercase a-z, 0-9, hyphens. No leading/trailing hyphens. Unlike the Agent Skills standard, Pi does **not** require this to match the parent directory. |
+| `description` | Yes | Max 1024 chars. What the skill does and when to use it. Include trigger scenarios. |
+| `license` | No | License name or reference to bundled file. |
+| `compatibility` | No | Max 500 chars. Environment requirements. |
+| `metadata` | No | Arbitrary key-value mapping. |
+| `allowed-tools` | No | Space-delimited list of pre-approved tools (experimental). |
+| `disable-model-invocation` | No | When `true`, skill is hidden from system prompt. Users must use `/skill:name`. |
+
+**Body (Markdown):** Instructions for using the skill and its bundled resources. Only loaded after the skill triggers.
+
+### Bundled Resources (optional)
+
+#### Scripts (`scripts/`)
+
+Executable code (Python/Bash/etc.) for tasks that require deterministic reliability or are repeatedly rewritten.
+
+- **When to include:** When the same code is being rewritten repeatedly or deterministic reliability is needed
+- **Benefits:** Token efficient, deterministic, may be executed without loading into context
+- **Note:** Scripts may still need to be read by Pi for patching or environment-specific adjustments
+
+#### References (`references/`)
+
+Documentation and reference material intended to be loaded as needed into context to inform Pi's process and thinking.
+
+- **When to include:** For documentation that Pi should reference while working
+- **Benefits:** Keeps SKILL.md lean, loaded only when Pi determines it's needed
+- **Best practice:** If files are large (>10k words), include grep search patterns in SKILL.md
+- **Avoid duplication:** Information should live in either SKILL.md or reference files, not both
+
+#### Assets
+
+Pi skills can include any other files (templates, configs, etc.) but there is no dedicated `assets/` convention in Pi's spec — just place them in the skill directory and reference them with relative paths.
+
+### What to Not Include
+
+- README.md, CHANGELOG.md, INSTALLATION_GUIDE.md — these are for users, not the agent
+- UI metadata files — Pi doesn't read them
+
+The skill should only contain what the agent needs to do the job.
+
+## Skill Creation Process
+
+1. Understand the skill with concrete examples
+2. Plan reusable skill contents (scripts, references)
+3. Initialize the skill (run `init_skill.py`)
+4. Edit the skill (implement resources and write SKILL.md)
+5. Validate the skill (run `quick_validate.py`)
+6. Iterate based on usage
+
+Follow these steps in order, skipping only when there is a clear reason they don't apply.
+
+### Skill Naming
+
+- Use lowercase letters, digits, and hyphens only
+- Normalize user-provided titles to hyphen-case (e.g., "Plan Mode" → `plan-mode`)
+- Keep under 64 characters
+- Prefer short, verb-led phrases
+- Namespace by tool when it improves clarity (e.g., `gh-comment-resolve`, `linear-triage-bot`)
+- Name the folder exactly after the skill name (for consistency, even though Pi doesn't enforce this)
+
+### Step 1: Understand the Skill with Concrete Examples
+
+Skip only when usage patterns are already clearly understood.
+
+To create an effective skill, understand concrete examples of how it will be used:
+
+- "What functionality should this skill support?"
+- "Can you give examples of how this skill would be used?"
+- "What would a user say that should trigger this skill?"
+- "Where should I create it? Default is `~/.pi/agent/skills/` so Pi auto-discovers it."
+
+Avoid asking too many questions in a single message. Start with the most important ones.
+
+### Step 2: Plan the Reusable Skill Contents
+
+For each concrete example, analyze:
+
+1. How would you execute this from scratch?
+2. What scripts, references, and other files would help when repeating these workflows?
+
+Example: A `pdf-editor` skill for "Help me rotate this PDF":
+1. Rotating a PDF requires re-writing the same code each time
+2. A `scripts/rotate_pdf.py` script would be helpful
+
+Example: A `frontend-builder` skill for "Build me a todo app":
+1. Writing a frontend requires the same boilerplate each time
+2. Template files in the skill directory would be helpful
+
+### Step 3: Initialize the Skill
+
+Skip if the skill already exists.
+
+Ask where the user wants the skill created. If they don't specify, default to `~/.pi/agent/skills/` so Pi auto-discovers it.
+
 ```bash
-# Generate skill id first
-SKILL_ID=$(uv run python skill-creator/scripts/generate_skill_id.py "my-skill-name")
-
-# Initialize skill directory
-uv run python skill-creator/scripts/init_skill.py "my-skill-name" --path ./output/dir --id "$SKILL_ID"
+python scripts/init_skill.py <skill-name> --path <output-directory> [--resources scripts,references]
 ```
 
-**Option B: Manual scaffolding**
-1. Run `skill-creator/scripts/generate_skill_id.py` to get a unique id.
-2. Create directory with skill name.
-3. Create `SKILL.md` with frontmatter and workflow.
-4. Create `_meta.json`:
-   ```json
-   {"id": "<id from generate_skill_id>", "version": "1.0.0"}
-   ```
-
-**Then for either option:**
-5. Add `scripts/` only when there is repeated logic or strict reliability needs.
-6. Add `references/` for schemas, edge cases, and long examples.
-7. Remove placeholders and dead content before validation.
-
-Notes:
-- `id` is immutable after first creation.
-- `version` follows semver and is bumped on release updates.
-
-### Phase 4: Quality Gates (Mandatory)
-
-Run validation first, then tests:
-
-1. **Frontmatter + structure validation**
-   - **FRONTMATTER MUST be first line** - No markdown headings (`#`) before `---`
-   - Required frontmatter keys: `name`, `description`
-   - Required `_meta.json` keys: `id`, `version`
-   - Naming, length, and formatting checks
-   - Resource and path sanity checks
-
-   **Common mistakes to check:**
-   - ❌ SKILL.md starts with `# Title` instead of `---`
-   - ❌ Frontmatter missing `description` field
-   - ❌ Frontmatter placed after markdown content
-
-2. **Script test pass**
-   - At least smoke tests for validator and packager
-   - Add regression tests for fixed bugs
-
-3. **Packaging dry run**
-   - Confirm archive contents and root folder layout
-   - Verify no build junk/secrets are included
-
-If any gate fails, fix and rerun before continuing.
-
-### Phase 5: Behavior Evaluation Loop
-
-For new or heavily modified skills, run an eval loop to validate behavior.
-
-**Quick process:**
-1. Prepare 3-10 realistic eval prompts
-2. Execute with-skill runs
-3. Compare against baseline (no-skill or previous version)
-4. Score against objective criteria
-5. Iterate on failures
-
-**Detailed guidance:** See [Eval Loop Reference](skill-creator/references/eval-loop.md) for scoring rubric, example prompts, and overfitting avoidance.
-
-### Phase 6: Release Packaging
-
-Scripts used in order:
-- Phase 1: `skill-creator/scripts/generate_skill_id.py`
-- Phase 3: `skill-creator/scripts/init_skill.py` (optional scaffolding)
-- Phase 4: `skill-creator/scripts/quick_validate.py`
-- Phase 4: `skill-creator/scripts/test_*.py`
-- Phase 6: `skill-creator/scripts/package_skill.py`
-
-Package only after gates are green.
-
-Expected command pattern:
+Examples:
 
 ```bash
-skill-creator/scripts/package_skill.py <path/to/skill>
+# Basic skill
+python scripts/init_skill.py my-skill --path ~/.pi/agent/skills
+
+# With resource directories
+python scripts/init_skill.py my-skill --path ~/.pi/agent/skills --resources scripts,references
+
+# With example files
+python scripts/init_skill.py my-skill --path ~/.pi/agent/skills --resources scripts --examples
+
+# Project-local skill (add to .pi/settings.json to enable)
+python scripts/init_skill.py project-tools --path .pi/skills
 ```
 
-Release checklist:
-- Archive opens cleanly
-- Contains expected files only
-- `SKILL.md` frontmatter matches folder name and intent
-- User receives path to final `.skill` artifact
+The script:
+- Creates the skill directory
+- Generates a SKILL.md template with proper frontmatter and TODO placeholders
+- Optionally creates resource directories
+- Optionally adds example files
 
-## Install and Activate
+### Step 4: Edit the Skill
 
-After packaging, install the skill:
+When editing, remember the skill is created for another Pi instance to use. Include information that would be beneficial and non-obvious. Consider what procedural knowledge or reusable assets would help another Pi execute these tasks more effectively.
+
+#### Start with Reusable Skill Contents
+
+Implement scripts/ and references/ first. This may require user input (e.g., brand assets, API docs).
+
+Test scripts by actually running them to ensure they work. If there are many similar scripts, test a representative sample.
+
+Delete any placeholder files that aren't needed.
+
+#### Write the Frontmatter
+
+```yaml
+---
+name: my-skill
+description: What this skill does and when to use it. Be specific — include trigger scenarios. Max 1024 chars.
+compatibility: "Environment requirements if any. Max 500 chars."  # optional
+---
+```
+
+**Description best practices:** The description is the trigger. Be specific:
+
+Good:
+```yaml
+description: Extracts text and tables from PDF files, fills PDF forms, and merges multiple PDFs. Use when working with PDF documents.
+```
+
+Poor:
+```yaml
+description: Helps with PDFs.
+```
+
+Always include "when to use" information in the description — not in the body. The body is only loaded after triggering, so "When to Use This Skill" sections in the body aren't helpful.
+
+#### Write the Body
+
+Use imperative/infinitive form. Write instructions for using the skill and its bundled resources.
+
+Structure options (adapt from these patterns, don't copy them literally):
+
+1. **Workflow-Based** — sequential processes with clear steps
+2. **Task-Based** — different operations or capabilities
+3. **Reference/Guidelines** — standards or specifications
+4. **Capabilities-Based** — interrelated features
+
+Use relative paths for everything:
+```markdown
+See [the reference guide](references/REFERENCE.md) for details.
+Run `python scripts/process.py <input>` to transform data.
+```
+
+### Step 5: Validate the Skill
 
 ```bash
-# Extract the .skill archive to the pi skills directory
-mkdir -p ~/.pi/agent/skills
-tar -xzf <path/to/skill>.skill -C ~/.pi/agent/skills/
+python scripts/quick_validate.py <path/to/skill-folder>
 ```
 
-Then inform the user to reload:
-> **Run `/reload` in pi to load the new skill.** It will now be discoverable and operational.
+The validation script checks:
+- YAML frontmatter format and required fields
+- Name rules (length, character restrictions)
+- Description rules (length, content)
+- Unexpected frontmatter keys
 
-## Writing Guidance
+If validation fails, fix the reported issues and run again.
 
-> SKILL.md is authored for the agent only—not humans.
+### Step 6: Iterate
 
-See [Writing Guide](skill-creator/references/writing-guide.md) for detailed guidance on trigger descriptions, context budgeting, and prose style.
+After testing, you may detect that the skill needs improvement.
 
-## Update Existing Skills Safely
+1. Use the skill on real tasks
+2. Notice struggles or inefficiencies
+3. Identify how SKILL.md or bundled resources should be updated
+4. Implement changes and test again
+5. Forward-test by using it yourself on realistic tasks
 
-When improving an existing skill:
+## Decision Tree: Choosing Skill Structure
 
-1. Preserve existing skill identity unless rename is requested.
-2. Snapshot or branch before major edits.
-3. Re-run validation/tests/packaging after each substantial revision.
+```
+Is it a sequence of steps?
+  ├── Yes → Workflow-Based (e.g., deployment pipeline)
+  └── No → ↓
 
-**Important:** When modifying skill-creator itself, do not overwrite `scripts/` with generated content. See [Updating Skills Reference](skill-creator/references/updating-skills.md) for detailed guidance including self-referential edge cases.
+Does it offer multiple independent operations?
+  ├── Yes → Task-Based (e.g., PDF tool: merge, split, extract)
+  └── No → ↓
 
-## Definition of Done
+Is it enforcing standards or conventions?
+  ├── Yes → Reference/Guidelines (e.g., coding standards, brand guide)
+  └── No → ↓
 
-A skill change is done only when all are true:
-
-- `SKILL.md` is concise, clear, and trigger-accurate.
-- `_meta.json` exists and contains valid `id` and semver `version`.
-- Reusable logic is externalized into scripts/references where appropriate.
-- Validation succeeds.
-- Script tests succeed (or documented exception approved by user).
-- Packaging succeeds and produces a usable `.skill` file.
-- User-facing summary includes what changed, why, and how to run the gates.
-
-## Quick Execution Checklist
-
-Use this checklist in your internal task tracking:
-
-- [ ] Scope and acceptance criteria confirmed
-- [ ] Name + trigger-rich description finalized
-- [ ] `SKILL.md` drafted/refactored
-- [ ] Scripts/references/assets added or cleaned
-- [ ] Validation passed
-- [ ] Tests passed
-- [ ] Eval loop completed (if applicable)
-- [ ] Package generated
-- [ ] Delivery summary prepared
+Is it a system with interrelated features?
+  └── Yes → Capabilities-Based (e.g., project management hub)
+```

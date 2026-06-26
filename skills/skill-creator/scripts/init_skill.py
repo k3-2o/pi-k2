@@ -1,138 +1,286 @@
 #!/usr/bin/env python3
 """
-Initialize a new skill directory with SKILL.md and _meta.json.
+Skill Initializer — Creates a new Pi skill from template.
 
-Important:
-- The skill id must come from the `generate_skill_id` tool.
-- Pass that value via --id when running this script.
+Usage:
+    init_skill.py <skill-name> --path <path> [--resources scripts,references] [--examples]
+
+Examples:
+    init_skill.py my-new-skill --path ~/.pi/agent/skills
+    init_skill.py my-new-skill --path ~/.pi/agent/skills --resources scripts,references
+    init_skill.py project-tools --path .pi/skills --resources scripts --examples
+    init_skill.py my-skill --path /custom/location
 """
 
 import argparse
-import json
 import re
 import sys
 from pathlib import Path
 
 MAX_SKILL_NAME_LENGTH = 64
-DEFAULT_VERSION = "1.0.0"
-SEMVER_PATTERN = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:[-+][0-9A-Za-z.-]+)?$")
-
+ALLOWED_RESOURCES = {"scripts", "references"}
 
 SKILL_TEMPLATE = """---
 name: {skill_name}
-description: [TODO: Describe what this skill does and when to trigger it]
+description: "[TODO: Complete and informative explanation of what the skill does and when to use it. Include WHEN to use this skill — specific scenarios, file types, or tasks that trigger it. Max 1024 chars.]"
+compatibility: "[TODO: Environment requirements, if any. Max 500 chars. Delete if not needed.]"
 ---
 
 # {skill_title}
 
 ## Overview
 
-[TODO: Briefly describe the skill workflow]
+[TODO: 1-2 sentences explaining what this skill enables.]
+
+## Usage
+
+[TODO: Instructions for Pi to follow when this skill activates. Consider:
+
+**Workflow-Based** (best for sequential processes):
+- Clear step-by-step procedures
+- Decision trees for complex workflows
+
+**Task-Based** (best for tool collections):
+- Different operations listed independently
+- Quick-start examples
+
+**Reference/Guidelines** (best for standards):
+- Conventions, schemas, business logic
+- When each rule applies
+
+Delete this guidance block and replace with actual skill content.]
+
+## [TODO: First main section]
+
+[TODO: Add actual instructions here. Use relative paths for everything:
+```bash
+python scripts/my-script.py <input>
+```
+See [references/details.md](references/details.md) for more.]
+
+## Resources
+
+### scripts/
+Executable code (Python/Bash/etc.) for deterministic or repeated operations.
+
+### references/
+Documentation loaded into context on demand to inform Pi's process.
+"""
+
+EXAMPLE_SCRIPT = """#!/usr/bin/env python3
+\"\"\"
+Example helper script for {skill_name}
+
+Replace with actual implementation or delete if not needed.
+\"\"\"
+
+def main():
+    print("This is an example script for {skill_name}")
+    # TODO: Add actual script logic here
+
+if __name__ == "__main__":
+    main()
+"""
+
+EXAMPLE_REFERENCE = """# Reference: {skill_title}
+
+Replace with actual reference content or delete if not needed.
+
+## When Reference Docs Are Useful
+
+- Comprehensive documentation too lengthy for SKILL.md
+- Content only needed for specific use cases
+- API references, schemas, detailed workflows
+
+## Structure Suggestions
+
+### API Reference
+- Overview
+- Endpoints with examples
+- Error codes
+- Rate limits
+
+### Workflow Guide
+- Prerequisites
+- Step-by-step instructions
+- Common patterns
+- Troubleshooting
 """
 
 
-def normalize_skill_name(raw: str) -> str:
-    value = raw.strip().lower()
-    value = re.sub(r"[^a-z0-9]+", "-", value)
-    value = re.sub(r"-{2,}", "-", value).strip("-")
-    return value
+def normalize_skill_name(skill_name):
+    """Normalize a skill name to lowercase hyphen-case."""
+    normalized = skill_name.strip().lower()
+    normalized = re.sub(r"[^a-z0-9]+", "-", normalized)
+    normalized = normalized.strip("-")
+    normalized = re.sub(r"-{2,}", "-", normalized)
+    return normalized
 
 
-def to_title(name: str) -> str:
-    return " ".join(part.capitalize() for part in name.split("-"))
+def title_case_skill_name(skill_name):
+    """Convert hyphenated skill name to Title Case for display."""
+    return " ".join(word.capitalize() for word in skill_name.split("-"))
 
 
-def is_valid_semver(version: str) -> bool:
-    return bool(SEMVER_PATTERN.match(version))
+def parse_resources(raw_resources):
+    if not raw_resources:
+        return []
+    resources = [item.strip() for item in raw_resources.split(",") if item.strip()]
+    invalid = sorted({item for item in resources if item not in ALLOWED_RESOURCES})
+    if invalid:
+        allowed = ", ".join(sorted(ALLOWED_RESOURCES))
+        print(f"[ERROR] Unknown resource type(s): {', '.join(invalid)}")
+        print(f"   Allowed: {allowed}")
+        sys.exit(1)
+    deduped = []
+    seen = set()
+    for resource in resources:
+        if resource not in seen:
+            deduped.append(resource)
+            seen.add(resource)
+    return deduped
 
 
-def write_json(path: Path, payload: dict) -> None:
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+def create_resource_dirs(skill_dir, skill_name, skill_title, resources, include_examples):
+    for resource in resources:
+        resource_dir = skill_dir / resource
+        resource_dir.mkdir(exist_ok=True)
+        if resource == "scripts":
+            if include_examples:
+                example_script = resource_dir / "example.py"
+                example_script.write_text(EXAMPLE_SCRIPT.format(skill_name=skill_name))
+                example_script.chmod(0o755)
+                print("[OK] Created scripts/example.py")
+            else:
+                print("[OK] Created scripts/")
+        elif resource == "references":
+            if include_examples:
+                example_reference = resource_dir / "api_reference.md"
+                example_reference.write_text(EXAMPLE_REFERENCE.format(skill_title=skill_title))
+                print("[OK] Created references/api_reference.md")
+            else:
+                print("[OK] Created references/")
 
 
-def init_skill(skill_name: str, output_path: Path, skill_id: str, version: str) -> Path:
-    target_dir = output_path.resolve() / skill_name
-    if target_dir.exists():
-        raise FileExistsError(f"Skill directory already exists: {target_dir}")
+def init_skill(skill_name, path, resources, include_examples):
+    """
+    Initialize a new skill directory with template SKILL.md.
 
-    target_dir.mkdir(parents=True, exist_ok=False)
+    Args:
+        skill_name: Name of the skill
+        path: Path where the skill directory should be created
+        resources: Resource directories to create
+        include_examples: Whether to create example files
 
-    skill_md = target_dir / "SKILL.md"
-    skill_md.write_text(
-        SKILL_TEMPLATE.format(skill_name=skill_name, skill_title=to_title(skill_name)),
-        encoding="utf-8",
-    )
+    Returns:
+        Path to created skill directory, or None if error
+    """
+    skill_dir = Path(path).resolve() / skill_name
 
-    meta_file = target_dir / "_meta.json"
-    write_json(meta_file, {"id": skill_id, "version": version})
-
-    return target_dir
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Initialize a new skill directory.")
-    parser.add_argument("skill_name", help="Skill name (will be normalized to hyphen-case)")
-    parser.add_argument("--path", required=True, help="Base output directory")
-    parser.add_argument(
-        "--id",
-        required=True,
-        dest="skill_id",
-        help="Skill id from generate_skill_id tool",
-    )
-    parser.add_argument(
-        "--version",
-        default=DEFAULT_VERSION,
-        help=f"Initial semantic version (default: {DEFAULT_VERSION})",
-    )
-    return parser.parse_args()
-
-
-def main() -> int:
-    args = parse_args()
-
-    normalized_name = normalize_skill_name(args.skill_name)
-    if not normalized_name:
-        print("ERROR: skill_name must contain at least one letter or digit")
-        return 1
-    if len(normalized_name) > MAX_SKILL_NAME_LENGTH:
-        print(
-            f"ERROR: skill_name is too long ({len(normalized_name)} chars). "
-            f"Max is {MAX_SKILL_NAME_LENGTH}."
-        )
-        return 1
-
-    skill_id = args.skill_id.strip()
-    if not skill_id:
-        print("ERROR: --id is required and must be non-empty")
-        print("Hint: call generate_skill_id tool first, then pass the result to --id.")
-        return 1
-
-    version = args.version.strip()
-    if not is_valid_semver(version):
-        print(f"ERROR: invalid semantic version: {version}")
-        return 1
-
-    if normalized_name != args.skill_name:
-        print(f"Note: normalized skill name to '{normalized_name}'")
+    if skill_dir.exists():
+        print(f"[ERROR] Skill directory already exists: {skill_dir}")
+        return None
 
     try:
-        created = init_skill(
-            skill_name=normalized_name,
-            output_path=Path(args.path),
-            skill_id=skill_id,
-            version=version,
-        )
-    except Exception as exc:
-        print(f"ERROR: {exc}")
-        return 1
+        skill_dir.mkdir(parents=True, exist_ok=False)
+        print(f"[OK] Created skill directory: {skill_dir}")
+    except Exception as e:
+        print(f"[ERROR] Error creating directory: {e}")
+        return None
 
-    print(f"OK: created skill at {created}")
-    print("Next steps:")
-    print(f"1) Edit {created / 'SKILL.md'}")
-    print(f"2) Validate with: uv run python scripts/quick_validate.py {created}")
-    print(f"3) Package with: uv run python scripts/package_skill.py {created}")
-    return 0
+    # Create SKILL.md from template
+    skill_title = title_case_skill_name(skill_name)
+    skill_content = SKILL_TEMPLATE.format(skill_name=skill_name, skill_title=skill_title)
+
+    skill_md_path = skill_dir / "SKILL.md"
+    try:
+        skill_md_path.write_text(skill_content)
+        print("[OK] Created SKILL.md")
+    except Exception as e:
+        print(f"[ERROR] Error creating SKILL.md: {e}")
+        return None
+
+    # Create resource directories if requested
+    if resources:
+        try:
+            create_resource_dirs(skill_dir, skill_name, skill_title, resources, include_examples)
+        except Exception as e:
+            print(f"[ERROR] Error creating resource directories: {e}")
+            return None
+
+    # Print next steps
+    print(f"\n[OK] Skill '{skill_name}' initialized successfully at {skill_dir}")
+    print("\nNext steps:")
+    print("1. Edit SKILL.md to complete the TODO items and update the description")
+    if resources:
+        if include_examples:
+            print("2. Customize or delete the example files in scripts/ and references/")
+        else:
+            print("2. Add resources to scripts/ and references/ as needed")
+    else:
+        print("2. Create resource directories only if needed (scripts/, references/)")
+    print("3. Validate the skill when ready:")
+    print(f"   python scripts/quick_validate.py {skill_dir}")
+
+    return skill_dir
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Create a new Pi skill directory with a SKILL.md template.",
+    )
+    parser.add_argument("skill_name", help="Skill name (normalized to hyphen-case)")
+    parser.add_argument("--path", required=True, help="Output directory for the skill")
+    parser.add_argument(
+        "--resources",
+        default="",
+        help="Comma-separated list: scripts,references",
+    )
+    parser.add_argument(
+        "--examples",
+        action="store_true",
+        help="Create example files inside the selected resource directories",
+    )
+    args = parser.parse_args()
+
+    raw_skill_name = args.skill_name
+    skill_name = normalize_skill_name(raw_skill_name)
+    if not skill_name:
+        print("[ERROR] Skill name must include at least one letter or digit.")
+        sys.exit(1)
+    if len(skill_name) > MAX_SKILL_NAME_LENGTH:
+        print(
+            f"[ERROR] Skill name '{skill_name}' is too long ({len(skill_name)} characters). "
+            f"Maximum is {MAX_SKILL_NAME_LENGTH} characters."
+        )
+        sys.exit(1)
+    if skill_name != raw_skill_name:
+        print(f"Note: Normalized skill name from '{raw_skill_name}' to '{skill_name}'.")
+
+    resources = parse_resources(args.resources)
+    if args.examples and not resources:
+        print("[ERROR] --examples requires --resources to be set.")
+        sys.exit(1)
+
+    path = args.path
+
+    print(f"Initializing skill: {skill_name}")
+    print(f"   Location: {path}")
+    if resources:
+        print(f"   Resources: {', '.join(resources)}")
+        if args.examples:
+            print("   Examples: enabled")
+    else:
+        print("   Resources: none (create as needed)")
+    print()
+
+    result = init_skill(skill_name, path, resources, args.examples)
+
+    if result:
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
