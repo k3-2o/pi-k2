@@ -1,15 +1,20 @@
 /**
- * Clipboard Tool — Copies text to the user's system clipboard.
+ * clipboard_copy — Copy text to the user's system clipboard.
  *
- * Backends (tried in order):
+ * Backends (tried in order with cascading failover):
  *   1. xclip        — Linux X11 clipboard
  *   2. pbcopy       — macOS clipboard
  *   3. OSC 52       — Universal fallback (SSH, tmux, zellij, any modern terminal)
+ *
+ * Abort-aware: respects signal via Node.js spawn signal option.
+ * On abort, throws "clipboard_copy: aborted" rendered in red,
+ * matching native pi tools (bash, read, write, edit).
  *
  * Security: Only copies TO clipboard. No paste/read-from-clipboard mode.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 import { execSync, spawn } from "node:child_process";
 
@@ -27,10 +32,27 @@ function isAvailable(name: string): boolean {
 
 /**
  * Pipe text to a process's stdin and wait for it to complete.
+ *
+ * Abort-aware: Node.js kills the child process automatically when
+ * `signal` is aborted (via spawn's built-in `signal` option).
+ * On abort, rejects with an Error whose message is "aborted".
  */
-function pipeToProcess(cmd: string, args: string[], input: string): Promise<void> {
+function pipeToProcess(
+	cmd: string,
+	args: string[],
+	input: string,
+	signal?: AbortSignal,
+): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const child = spawn(cmd, args, { stdio: ["pipe", "ignore", "ignore"] });
+		if (signal?.aborted) {
+			reject(new Error("aborted"));
+			return;
+		}
+
+		const child = spawn(cmd, args, {
+			stdio: ["pipe", "ignore", "ignore"],
+			signal,
+		});
 		let spawnError: Error | undefined;
 
 		child.on("error", (err) => {
@@ -39,7 +61,12 @@ function pipeToProcess(cmd: string, args: string[], input: string): Promise<void
 
 		child.on("close", (code) => {
 			if (spawnError) {
-				reject(spawnError);
+				// If aborted, normalize to consistent "aborted" message
+				if (signal?.aborted) {
+					reject(new Error("aborted"));
+				} else {
+					reject(spawnError);
+				}
 			} else if (code === 0) {
 				resolve();
 			} else {
@@ -76,17 +103,53 @@ export default function (pi: ExtensionAPI) {
 			text: Type.String({ description: "The text to copy to the clipboard" }),
 		}),
 
-		async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
+		// ── Render Call ───────────────────────────────────────────────
+
+		renderCall(args, theme) {
+			const preview = typeof args.text === "string"
+				? args.text.slice(0, 60).replace(/\n/g, " ")
+				: "";
+			const display = preview.length >= 60 ? preview + "…" : preview;
+			return new Text(
+				theme.fg("toolTitle", theme.bold("clipboard_copy ")) +
+				theme.fg("dim", `"${display}"`),
+				0, 0,
+			);
+		},
+
+		// ── Render Result ─────────────────────────────────────────────
+
+		renderResult(result, _options, theme, context) {
+			if (context?.isError) {
+				const errorText = result.content?.[0]?.type === "text"
+					? result.content[0].text
+					: "clipboard_copy: aborted";
+				return new Text(theme.fg("error", `✗ ${errorText}`), 0, 0);
+			}
+			const text = result.content?.[0]?.type === "text"
+				? result.content[0].text
+				: "";
+			return new Text(theme.fg("success", "✓ ") + theme.fg("dim", text), 0, 0);
+		},
+
+		// ── Execute ───────────────────────────────────────────────────
+
+		async execute(_toolCallId, params, signal, _onUpdate, _ctx) {
 			const text = params.text;
+
+			if (signal?.aborted) {
+				throw new Error("clipboard_copy: aborted");
+			}
 
 			// --- 1. xclip (Linux) ---
 			if (isAvailable("xclip")) {
 				try {
-					await pipeToProcess("xclip", ["-selection", "clipboard", "-i"], text);
+					await pipeToProcess("xclip", ["-selection", "clipboard", "-i"], text, signal);
 					return {
 						content: [{ type: "text", text: "Copied to clipboard (via xclip)" }],
 					};
-				} catch {
+				} catch (err) {
+					if (signal?.aborted) throw new Error("clipboard_copy: aborted");
 					// Fall through to next backend
 				}
 			}
@@ -94,23 +157,26 @@ export default function (pi: ExtensionAPI) {
 			// --- 2. pbcopy (macOS) ---
 			if (isAvailable("pbcopy")) {
 				try {
-					await pipeToProcess("pbcopy", [], text);
+					await pipeToProcess("pbcopy", [], text, signal);
 					return {
 						content: [{ type: "text", text: "Copied to clipboard (via pbcopy)" }],
 					};
-				} catch {
+				} catch (err) {
+					if (signal?.aborted) throw new Error("clipboard_copy: aborted");
 					// Fall through to next backend
 				}
 			}
 
 			// --- 3. OSC 52 (universal terminal fallback) ---
 			try {
+				if (signal?.aborted) throw new Error("clipboard_copy: aborted");
 				const b64 = Buffer.from(text, "utf-8").toString("base64");
 				process.stdout.write(`\x1b]52;c;${b64}\x1b\\`);
 				return {
 					content: [{ type: "text", text: "Copied to clipboard (via OSC 52)" }],
 				};
 			} catch (err) {
+				if (signal?.aborted) throw new Error("clipboard_copy: aborted");
 				const message = err instanceof Error ? err.message : String(err);
 				return {
 					content: [

@@ -372,7 +372,13 @@ export default function omniSearchGateway(pi: ExtensionAPI) {
       return new Text(line, 0, 0);
     },
 
-    renderResult(result, { expanded }, theme) {
+    renderResult(result, { expanded }, theme, context) {
+      if (context?.isError) {
+        const errorText = result.content?.[0]?.type === "text"
+          ? result.content[0].text
+          : "web_search: aborted";
+        return new Text(theme.fg("error", `✗ ${errorText}`), 0, 0);
+      }
       const d = result.details as OmniSearchDetails | undefined;
       if (!d) {
         const text = result.content?.[0];
@@ -394,7 +400,7 @@ export default function omniSearchGateway(pi: ExtensionAPI) {
       const { query, intent } = params as { query: string; intent: Intent };
 
       if (signal?.aborted) {
-        throw new Error("web_search: aborted before execution");
+        throw new Error("web_search: aborted");
       }
 
       onUpdate?.({
@@ -410,6 +416,10 @@ export default function omniSearchGateway(pi: ExtensionAPI) {
       const errors: string[] = [];
 
       for (const provider of routing) {
+        if (signal?.aborted) {
+          throw new Error("web_search: aborted");
+        }
+
         const apiKey = process.env[provider.envKey];
 
         if (!apiKey) {
@@ -451,6 +461,9 @@ export default function omniSearchGateway(pi: ExtensionAPI) {
             details,
           };
         } catch (err) {
+          if (signal?.aborted) {
+            throw new Error("web_search: aborted");
+          }
           const msg = err instanceof Error ? err.message : String(err);
           errors.push(`${provider.id}: ${msg}`);
           continue;
