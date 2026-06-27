@@ -47,14 +47,16 @@ Also install the standalone packages:
 
 | Package | Description |
 |---------|-------------|
-| [`pi-read-image`](https://github.com/k3-2o/pi-read-image) | Local OCR for Pi — extracts text from screenshots and code images |
 | [`pi-chrollo`](https://github.com/k3-2o/pi-chrollo) | Agentic memory for Pi — verbatim session capture + grep retrieval |
+| [`pi-composio`](https://github.com/k3-2o/pi-composio) | Pi extension — 6 meta tools for 1,000+ app integrations (Gmail, Slack, GitHub, etc.) via Composio's TypeScript SDK |
 | [`pi-move`](https://github.com/k3-2o/pi-move) | Pi extension — `/move` command to switch directories from inside Pi |
+| [`pi-read-image`](https://github.com/k3-2o/pi-read-image) | Local OCR for Pi — extracts text from screenshots and code images |
 
 ```bash
-pi install git:github.com/k3-2o/pi-read-image
 pi install git:github.com/k3-2o/pi-chrollo
+pi install git:github.com/k3-2o/pi-composio
 pi install git:github.com/k3-2o/pi-move
+pi install git:github.com/k3-2o/pi-read-image
 ```
 
 ## License
