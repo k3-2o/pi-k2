@@ -1,91 +1,106 @@
 ---
 name: scope
-description: "Codebase exploration for unfamiliar repos — finds entry points, maps important symbols (functions/classes) across 25+ languages, and pairs source files with tests. Use when: dropped into a project you've never seen and need to find where to start, verifying your edits didn't break the structure, looking for test files that match a source file, or generating a compact codebase summary for an AI prompt. Not for: measuring code quality (use prism). Trigger words: orient, explore, codebase, navigate, unfamiliar, what's here, entry points, onboarding, map, overview."
-compatibility: "Requires `scope` CLI on PATH. Install: `cd ~/scope && uv tool install .`"
+description: "Generates compact orientation cards for source files and directories — showing entry points, exports, imports, symbol roles, cross-file dependencies, and structural issues ranked by importance. Use when: dropped into an unfamiliar codebase and cannot name the top 3 most important files; the user gives an open-ended task spanning multiple modules and you need the project map first; about to edit or refactor a file you haven't read yet and need the symbol-level read order; or about to rename or move a shared symbol and need to check what depends on it. Trigger words: orient, explore, overview, map codebase, understand file, code structure, file summary, radar, unfamiliar repo, critical path, read order."
+compatibility: "Requires Python 3.11+ and `uv`. Install with `uv tool install` from the scope repo root."
 ---
 
-# Repo Baby — Codebase Map for Agent Orientation
+# Scope
 
-## Prerequisites
+Codebase orientation radar. Understand what you're looking at before you read a single line.
+
+## Setup
+
+Check prerequisites:
 
 ```bash
-# Check if installed
 which scope
-
-# Install (one-time)
-cd ~/scope && uv tool install .
-
-# Run from anywhere
-scope --path /some/repo --mode overview
 ```
 
-## What This Tool Does
+If missing, install:
 
-Repo Baby scans a codebase with Tree-sitter (25+ languages), extracts all symbols (functions, classes, methods, interfaces, etc.), ranks them by cross-file reference importance, and returns the result in a compact text format.
-
-It has three modes, each covering something an agent cannot efficiently do with bash alone.
-
-## WHEN TO CALL (exactly four triggers)
-
-**1. ORIENTATION** — you just entered a repo for the first time this session, or the user asked an open-ended question and you cannot name the top 3 relevant files. One call replaces 5-10 turns of ls/grep/read.
-→ `scope --path <repo> --mode overview` (frameworks, entrypoints, stats, suggested reads)
-→ Then `scope --path <repo> --mode map --token-budget 800` (structural detail)
-
-**2. VERIFICATION** — you just renamed a function, moved a class, changed an export, or modified a shared interface across multiple files.
-→ `scope --path <repo> --mode map` shows fresh importance scores — does the refactor look correct?
-
-**3. CONTEXT SWITCH** — the user said "look at the auth module instead" or switched branches/topics. Your mental map is stale.
-→ `scope --path <repo> --mode overview` or `--mode map` to re-orient.
-
-**4. STRUCTURAL QUESTION** — the user asked "how is this organized?", "what depends on what?", "where are the tests for X?"
-→ `scope --path <repo> --mode pairs` for test/source mapping
-→ `scope --path <repo> --mode map` for ranked symbols
-
-## DO NOT CALL when
-
-- The user named a specific file and line number
-- The task is a one-line change in a file you have already read
-- You called it within the last 3 turns and the repo has not changed
-- The task is purely mechanical: formatting, versions, comments, simple typos
-- You are in "execute" mode, not "orient" mode — you already know where to edit
-
-## AFTER CALLING
-
-- Always read "suggested next reads" — they are ranked by importance
-- If mode=map shows high-importance symbols, read those files next
-- If mode=pairs returned test files for a source you are editing, run those tests
-
-## Mode Reference
-
-| Mode | Command | What it shows | Why not bash |
-|---|---|---|---|
-| overview | `--mode overview` | Frameworks, entrypoints, language stats, suggested reads, package scripts | Replaces 3-4 chained exploration commands |
-| map | `--mode map --token-budget 800` | Ranked symbols by cross-file reference count, grouped by file | Bash cannot compute cross-file importance |
-| pairs | `--mode pairs` | Source↔test file matching | Tedious to do with grep/find name matching |
-
-## Common Flags
-
-| Flag | Purpose |
-|---|---|
-| `--path <dir>` | Repository root (required) |
-| `--scope <subdir>` | Limit to a subdirectory (e.g. `src/`) |
-| `--token-budget <n>` | Output size limit in tokens (default 800) |
-| `--max-files <n>` | Maximum source files to scan (default 1000) |
-| `--format json` | Structured JSON output |
-| `--no-cache` | Bypass symbol cache |
-
-## Output Example
-
-```text
-- src/auth/service.py:
-  function validate_token (line 45)  ← 12 files
-  function refresh_session (line 102)  ← 5 files
-  class TokenManager (line 15)
-- src/api/handlers.py:
-  function login_handler (line 23)  ← 3 files
-## Suggested next reads
-1. src/auth/service.py
-2. src/api/handlers.py
+```bash
+git clone https://github.com/k3-2o/scope ~/scope && cd ~/scope && uv tool install .
 ```
 
-The `← N files` shows cross-file reference count. Higher means more files depend on this symbol — read it first.
+Verify: `which scope`
+
+## When to invoke
+
+- **New project, no map.** You just entered a codebase and cannot name its three most important files. Run `scope --path <directory>` to get per-file cards ranked by importance and issue count.
+- **About to edit unfamiliar code.** The user asked you to modify a file you haven't read yet. Run `scope --path <file>` first to get the symbol-level read order — which symbols to read, and in what sequence, before writing a single edit.
+- **Cross-file impact check.** You renamed or moved a shared symbol and need to know what other files reference it. Run `scope --path <file>` and inspect the imports, exports, and cross-file reference counts in the card.
+- **Pre-review or refactor health pass.** You need a quick structural overview across a directory before diving deeper. Run `scope --path <directory>` to surface files ranked by anomaly and dependency density.
+
+## Workflow
+
+### Step 1: Orient on a single file
+
+```bash
+scope --path <file>
+```
+
+Returns a compact card with five sections: language header, symbol stats, ranked read order, anomalies, and role classifications.
+
+**Read the read-order symbols first.** They are ranked by role priority (entry points first), then cross-file reference count (higher = more files depend on it), then line number. This is the critical path through the file.
+
+### Step 2: Orient on a directory
+
+```bash
+scope --path <directory>
+```
+
+Produces a card for every supported file plus a directory summary. The summary surfaces files ranked by issue count and cross-file reference density. Focus on high-anomaly files first.
+
+For large directories, cap the scan:
+
+```bash
+scope --path <directory> --max-files 50
+```
+
+For a repo-wide structural summary:
+
+```bash
+scope --path <directory> --mode audit
+```
+
+### Step 3: Get full detail when the compact card isn't enough
+
+```bash
+scope --path <file> --verbose
+```
+
+Shows every symbol with its line number, role, and classification confidence — useful when something didn't get classified or you need to see what was missed.
+
+### Step 4: Get structured output for downstream processing
+
+```bash
+scope --path <file> --output json
+```
+
+Use JSON when another step or tool needs to parse the card programmatically. Default text output is for human and agent reading.
+
+### Step 5: Bypass the cache after large refactors
+
+After renames, moves, or mass edits the symbol cache may be stale:
+
+```bash
+scope --path <directory> --no-cache
+```
+
+## Interpreting output
+
+Your job is to read the card and act on it, not to dump it back at the user. Prioritize:
+
+- **Read order** — the critical path. Start there before reading anything else.
+- **Cross-file references** — blast radius for any edit. Symbols other files import are high-risk when renaming or restructuring.
+- **Anomalies** — structural red flags (hardcoded values, deep nesting, silent catch blocks). Note them, then judge for yourself. The tool classifies; it does not decide.
+- **Role classifications** — what each symbol does (entry point, http caller, normalizer, config loader). Use these to build a mental model fast.
+
+## When to Skip
+
+- The path is a config file with no symbols to classify (`package.json`, `pyproject.toml`, `.env`)
+- The file is binary, minified, or auto-generated
+- You already know the file structure and just need to find one specific symbol
+- The task is a trivial one-line edit in code you already understand
+- You need code complexity metrics, test coverage, or security analysis — use a structural analysis tool for that
+- You need deep logical analysis of a single function's correctness — scope shows structure, not semantic correctness

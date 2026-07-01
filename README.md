@@ -18,15 +18,15 @@
 |------|-------------|
 | `catppuccin-mocha.json` | Catppuccin Mocha |
 | `dracula.json` | Dracula |
-| `my-catppuccin-mocha.json` | Custom Catppuccin Mocha variant |
 | `nightowl.json` | Night Owl |
 
 ### Skills
 
 | Directory | Description |
 |-----------|-------------|
-| `prism/` | Structural code analysis — cyclomatic complexity, nesting depth, dead functions, code clones, and more across 12 languages. Use with CLI tool [`prism`](https://github.com/k3-2o/prism). |
-| `scope/` | Codebase exploration — entry points, symbol maps, and test/source pairing across 25+ languages. Use with CLI tool [`scope`](https://github.com/k3-2o/scope). |
+| `docs-skill/` | Write excellent documentation — READMEs, API refs, architecture docs, tutorials, how-to guides, and changelogs. Diátaxis framework, ethics, and docs-as-code workflows. |
+| `prism/` | Structural code analysis — cyclomatic/cognitive complexity, nesting depth, dead functions, code clones, cyclic imports, god classes, error handling coverage, and more across 12 languages. Use with CLI tool [`prism`](https://github.com/k3-2o/prism). |
+| `scope/` | Codebase orientation — per-file cards showing entry points, exports, imports, cross-file deps, symbols ranked by importance, and structural anomalies. Use with CLI tool [`scope`](https://github.com/k3-2o/scope). |
 | `skill-creator/` | Create, refactor, validate, and package Agent Skills |
 | `youtube-transcript/` | Fetch YouTube video transcripts and summarize |
 
