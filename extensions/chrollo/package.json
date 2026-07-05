@@ -1,0 +1,35 @@
+{
+  "name": "@k3_2o/pi-chrollo",
+  "version": "0.1.11",
+  "description": "Agentic memory for Pi — verbatim session capture + grep retrieval",
+  "keywords": [
+    "pi-package",
+    "memory",
+    "agent"
+  ],
+  "author": "k3_2o",
+  "license": "MIT",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/k3-2o/pi-chrollo.git"
+  },
+  "scripts": {
+    "format": "prettier --write 'index.ts' 'src/*.ts' 'scripts/*.ts'",
+    "format:check": "prettier --check 'index.ts' 'src/*.ts' 'scripts/*.ts'",
+    "smoke": "tsx -e \"import './index'; import './src/search'; import './src/storage'; import './src/stats'; import './src/format'; import './src/capture'; console.log('OK')\"",
+    "check": "npm run format:check && npm run smoke",
+    "build-thesaurus": "npm install --no-save wordpos && tsx scripts/build-thesaurus.ts && npm uninstall wordpos"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3"
+  },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

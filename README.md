@@ -6,10 +6,13 @@
 
 ### Extensions
 
-| File | Description |
-|------|-------------|
+| Directory/File | Description |
+|----------------|-------------|
 | `ask-user-question.ts` | Ask the user multiple-choice questions |
+| `chrollo/` | Agentic memory — verbatim session capture + g repel retrieval |
 | `clipboard.ts` | Copy text to system clipboard |
+| `pi-move/` | `/move` command to switch directories from inside Pi |
+| `read_image/` | Local OCR for Pi — extracts text from screenshots and code images |
 | `web_search.ts` | Web search, discovery, and extraction |
 
 ### Themes
@@ -25,7 +28,8 @@
 | Directory | Description |
 |-----------|-------------|
 | `docs-skill/` | Write excellent documentation — READMEs, API refs, architecture docs, tutorials, how-to guides, and changelogs. Diátaxis framework, ethics, and docs-as-code workflows. |
-| `prism/` | Structural code analysis — cyclomatic/cognitive complexity, nesting depth, dead functions, code clones, cyclic imports, god classes, error handling coverage, and more across 12 languages. Use with CLI tool [`prism`](https://github.com/k3-2o/prism). |
+| `code-trinity/` | Three-lens code audit, quality, and maintainability pipeline — adversarial bug-hunt, codebase intelligence analysis, and human-standards maintainability review with diff-level re-validation. |
+| `project-setup/` | Set up or resume project workspaces following the LOOP methodology — SPEC.md, PLAN-TODO.md, just dev pipeline, git init. |
 | `scope/` | Codebase orientation — per-file cards showing entry points, exports, imports, cross-file deps, symbols ranked by importance, and structural anomalies. Use with CLI tool [`scope`](https://github.com/k3-2o/scope). |
 | `skill-creator/` | Create, refactor, validate, and package Agent Skills |
 | `youtube-transcript/` | Fetch YouTube video transcripts and summarize |
