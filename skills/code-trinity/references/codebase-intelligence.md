@@ -1,40 +1,21 @@
-# Leg 2: Codebase Intelligence
+# Codebase Intelligence — Tool Catalog
 
-## Overview
+A reference catalog of code analysis tools organized by language and domain. Consult this when recommending intelligence tools to the user at the end of an audit.
 
-Leg 2 is about measuring what's healthy and what's rotten across the full spectrum — dead code, complexity, architecture, dependencies, security, types, duplication, churn. You use real tools to do it.
+This file does not instruct the agent to run anything. It provides the information needed to make a good recommendation: what each tool catches, which languages it supports, and when it's proportionate for a given codebase size.
 
-**Golden Rule**: Ask the user before installing anything.
+## Sizing Guide
 
-**If you don't know a tool** — run `curl` or write a quick Python script to check the tool's docs, README, or `--help` output. Don't guess flags. Research it until you understand what it does and how to run it correctly.
+Match tool recommendations to the project's weight:
 
-### Judge by the weight of the codebase
+- **~200 lines** — Nothing. The adversarial audit already read every line.
+- **500–2K lines** — A type checker + one linter. That's usually enough.
+- **5K–50K lines** — Dead code detection, complexity analysis, a security scan.
+- **50K+ lines** — Full spectrum: architecture, churn, duplication, dependencies.
+- **A library/package** — Semver checking, type coverage, dead exports. Skip architecture.
+- **A prototype/fork** — Fast checks only. Don't deep-dive something that'll be rewritten.
 
-Not every project needs everything in this reference. Judge what's proportionate:
-
-- **A 200-line script** needs nothing. Read it.
-- **A small CLI tool** (500-2000 lines) maybe needs a type checker + one linter. That's it.
-- **A mid-size app** (5K-50K lines) benefits from dead code detection, complexity analysis, a security scan.
-- **A large codebase** (50K+ lines) justifies the full spectrum — architecture, churn, duplication, deps.
-- **A library/package** needs semver checking, type coverage, dead exports. Maybe skip architecture.
-- **A prototype/fork** — just the fast checks. Don't deep-dive something that'll be rewritten.
-
-**Always tell the user what you're running and why.** Before you install or run anything, say:
-
-> "This project is ~15K lines of TypeScript. I'll run knip for dead code, tsc --strict for types, and semgrep for security. Should take ~30 seconds. The heavier tools (architecture graph, churn analysis) don't seem warranted here unless you disagree."
-
-If the user says skip it, skip it. If they want the full treatment, run the full treatment. Your judgment sets the default; their call sets the scope.
-
----
-
-## How to Use This
-
-1. Detect the project language(s)
-2. Find the matching section below
-3. For each tool: **check if it exists first** — `which <tool>`, `tool --version`, or lookup the install path. If it's missing, install it (ask the user first).
-4. Run the tools — start with the multi-signal ones, then drill into specific domains
-5. Collect and categorize findings
-6. Merge with Leg 1 findings
+When recommending, name the tools and say what they catch.
 
 ---
 
@@ -393,23 +374,12 @@ These tools cover many languages at once. Run them early.
 
 ---
 
-## Combining with Leg 1
+## Combining with Adversarial Audit
 
 | Finding type | Better caught by |
 |--------------|-----------------|
-| Logic errors, race conditions, auth bypass | Leg 1 (adversarial reasoning) |
-| Dead code, unused exports, type errors | Leg 2 (tools) |
+| Logic errors, race conditions, auth bypass | Adversarial audit (Leg 1) |
+| Dead code, unused exports, type errors | Intelligence tools |
 | Security vulnerabilities | Both |
-| Dependency issues | Leg 2 |
-| Architecture violations, cycles | Leg 2 |
-
-**Tag findings**: `🔴 blocker` → `🟡 concerning` → `🟢 informational`
-
----
-
-## Tool Safety
-
-- **Never run tools with `--fix` or auto-apply.** You handle all code changes in Leg 3.
-- **Ask the user before installing.**
-- **Respect `.gitignore`.** Skip `node_modules/`, `target/`, `build/`, etc.
-- **If a tool isn't available** for the project's language, skip it and note the gap.
+| Dependency issues | Intelligence tools |
+| Architecture violations, cycles | Intelligence tools |

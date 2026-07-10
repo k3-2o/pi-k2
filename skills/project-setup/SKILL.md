@@ -1,12 +1,12 @@
 ---
 name: project-setup
-description: "Sets up or resumes project workspaces following the LOOP methodology — pre-flight check for prior discussion, workspace directory selection in ~/.workspaces/, writing SPEC.md (Alzheimer's format) and PLAN-TODO.md, setting up a just-based dev environment (fmt/lint/check/test), verifying the pipeline, initial git commit, and establishing the write→fmt→check→test→commit loop. Use when asked to set up a workspace, bootstrap a project, init a new project, prepare the environment, resume work, or start the development loop. Always runs a pre-check to ensure the project has been discussed before proceeding."
-compatibility: "Requires just (command runner) to be installed. Works with any language — Python/uv, TypeScript/npm, Rust/cargo, Go, etc. The agent determines the appropriate toolchain."
+description: "Bootstrap or resume project workspaces — pre-flight discussion check, workspace directory selection in ~/.workspaces/, SPEC.md (Alzheimer's format), PLAN-TODO.md, just-based dev environment with fmt/lint/check/test pipeline, verify pipeline, initial git commit, then debrief the LOOP iteration cycle. Use when asked to set up a workspace, bootstrap a project, init a new project, prepare the environment, or resume work. Always runs a pre-check first."
+compatibility: "Requires just (command runner). If missing, install via system package manager or ask user. Works with any language — Python/uv, TypeScript/npm, Rust/cargo, Go, etc."
 ---
 
 # Workspace Bootstrap
 
-The LOOP methodology — a pre-flight → setup → write → fmt → check → test → commit cycle for project workspaces. This skill handles the full bootstrap sequence from workspace creation through initial commit, then establishes the iteration loop.
+The LOOP methodology — a pre-flight → setup → write → fmt → check → test → commit cycle for project workspaces. This skill handles the full bootstrap sequence from workspace creation through initial commit, with a verification pass and a debrief on the iteration methodology.
 
 ## The Workflow
 
@@ -20,12 +20,25 @@ Phase 4: Environment Setup (just)
 Phase 5: Pipeline Verification
 Phase 6: Git Init
     ↓
-Phase 7: Enter the Loop (write → fmt → check → test → commit)
+Phase 7: Verify Setup
 ```
 
-> **NOTE:** Not greenfield? If you're picking up an existing project or resuming work, run through the phases below and skip what's already in place — only fill in what's missing.
-
 > **NOTE:** The phases below are the default path. Add additional phases as the project requires — the framework extends, it doesn't constrain.
+
+---
+
+## Resuming an Existing Project
+
+If you're picking up an existing project or resuming work, don't start from Phase 0. Run this decision tree:
+
+1. **Is there a SPEC.md?** — Check `.vscode/SPEC.md` (or project root). If missing, go to Phase 2.
+2. **Is there a PLAN-TODO.md?** — Check `.vscode/PLAN-TODO.md`. If missing, go to Phase 3.
+3. **Is there a justfile?** — Check project root. If missing, go to Phase 4.
+4. **Is the pipeline green?** — Run `just check && just test`. If failing, go to Phase 5.
+5. **Is git initialized with a clean state?** — If not, go to Phase 6.
+6. **All present and green?** — Skip to Phase 7 (Verify Setup + debrief).
+
+Fill gaps only where they exist. Don't regenerate what's already there — verify and supplement.
 
 ---
 
@@ -90,15 +103,16 @@ The project always goes under `~/.workspaces/`.
 
 ## Phase 3: Write PLAN-TODO.md
 
-Write a hybrid plan + todo document with:
-- **Phases** broken into discrete tasks
-- Each task has `[ ]` checkboxes for tracking progress
-- A **progress bar** at the bottom showing completion per phase (e.g., `[###-------] 30%`)
-- Phases ordered: environment → core → extensions → polish → documentation
+Write a detailed todo with plan structure:
+- **Phases** broken into discrete tasks, each with enough context to understand what it accomplishes, what it depends on, and when it's done
+- Each task gets a `[ ]` checkbox — checked off in the loop as work completes
+- Phases ordered logically for the project (typically: environment → core → extensions → polish → documentation)
 
-Be detailed — this is also the execution plan, not just a checklist. Each phase needs context: what it accomplishes, what it depends on, and when it's done.
+This is both the plan and the todo. It tells you what to do and tracks what's done.
 
-**Every phase must include a `[ ] Write tests for ...` checkbox.** Testing is not a separate phase — it lives alongside every implementation task, every time.
+**Every implementation task must have a corresponding `[ ] Write tests for ...` checkbox.** Testing is not a separate phase — it lives alongside the implementation it covers.
+
+Tests must exercise real logic — assert on actual behavior, edge cases, and failure paths. Never write test theater: tests that only prove a function was called, assert on trivially true conditions, or exist solely to pass without questioning whether the code works.
 
 > **NOTE:** Use standard remote repo and project structure, separation of concerns, single-responsibility per file, and meaningful naming — how much of this applies depends on the project's weight, state, and calibre. Intelligently decide what fits. Reach for patterns you already know: package-by-layer or package-by-feature, clean or hexagonal architecture, repository and service layer patterns; SOLID, GRASP, DRY, YAGNI, KISS, Law of Demeter, command-query separation, composition over inheritance; PascalCase, camelCase, snake_case, kebab-case; TDD or BDD, arrange-act-assert, given-when-then, red-green-refactor; keep cyclomatic complexity in check, cohesion high and coupling low, single source of truth, fail fast, least astonishment, immutability, idempotency, boy scout rule — and whatever else from the breadth of your knowledge fits the project.
 
@@ -116,7 +130,15 @@ echo ".vscode/" >> .gitignore
 
 ## Phase 4: Set Up the Dev Environment
 
-`just` is the command runner (replaces `make`). It **may not be in training data**, so orient yourself first.
+Before proceeding, verify the tooling is available:
+
+```bash
+bash scripts/preflight.sh   # Checks for just, git
+```
+
+If anything is missing, install it or ask the user before continuing.
+
+`just` is the command runner (replaces `make`). Orient yourself if needed:
 
 ### 4a — Orient on `just`
 
@@ -183,57 +205,7 @@ Create a `justfile` in the project root with these recipes:
 | `test` | Run the test suite |
 | `ci` | Full pipeline: fmt → lint → typecheck → security → audit → test |
 
-Example `justfile` for a Python project:
-
-```makefile
-fmt:
-    uv run ruff format src/ tests/
-
-lint:
-    uv run ruff check src/ tests/
-
-types:
-    uv run mypy src/
-
-security:
-    uv run bandit -r src/ -x tests/
-
-audit:
-    uv audit
-
-check: fmt lint types security audit
-
-test:
-    uv run pytest
-
-ci: check test
-```
-
-Example `justfile` for a TypeScript project:
-
-```makefile
-fmt:
-    npx prettier --write src/
-
-lint:
-    npx eslint src/
-
-types:
-    npx tsc --noEmit
-
-security:
-    npm audit
-
-audit:
-    npm audit
-
-check: fmt lint types security audit
-
-test:
-    npx vitest run
-
-ci: check test
-```
+See [references/justfile-templates.md](references/justfile-templates.md) for starter templates by language (Python, TypeScript, Rust, Go). Adapt to the project's specific toolchain — these are starting points, not prescriptions.
 
 ### 4f — Write `.gitignore`
 
@@ -267,21 +239,29 @@ vendor/
 
 ### 4g — Optional Extras (per-project)
 
-These are **not required** for every project. Review the list with the user and confirm which ones to add — don't decide alone.
+These are **not required** for every project. Review with the user and confirm which to add — don't decide alone.
 
-- **Smoke test** — after build, run `<tool> --version && <tool> --help` to catch broken entry points
-- **Dependency freeze** — commit lockfile after every `uv add` for reproducible installs
-- **AST grep** — structural code search, add to `check`
-- **Changelog workflow** — maintain `CHANGELOG.md` as part of the commit cycle
-- **Pre-commit hooks** — run `just check` before every commit, block on failure
-- **Secrets scanning** — `gitleaks` / `trufflehog` for accidentally committed credentials
-- **Domain-specific security** — `tfsec`/`checkov` for Terraform, `trivy` for Docker, `trufflehog` for secrets, etc.
+**Pipeline additions** (run as part of `just check` or as standalone recipes):
+- **AST grep** — structural code search
+- **Spell check** — `codespell` / `cspell` for typos in code and docs
+- **Dead code detection** — `vulture` (Python), `ts-prune` (TypeScript), `unused` (Rust)
+
+**Justfile additions** (new recipes):
+- **Smoke test** — `<tool> --version && <tool> --help` to catch broken entry points
 - **`just clean`** — nuke build artifacts, `__pycache__`, `node_modules`, `target/`, etc.
 - **`just setup`** — single command from clone to dev-ready: install deps, copy config, create dirs
-- **`just outdated`** — `uv outdated` / `npm outdated` to track dependency lag
-- **Spell check** — `codespell` / `cspell` to catch typos in code and docs
-- **Dead code detection** — `vulture` (Python), `ts-prune` (TypeScript), `unused` (Rust)
-- **`just release`** — version bump + changelog + git tag + publish in one recipe
+- **`just outdated`** — track dependency lag (`uv outdated`, `npm outdated`)
+- **`just release`** — version bump + changelog + git tag + publish
+
+**Dependency & security:**
+- **Dependency freeze** — commit lockfile after every package add for reproducible installs
+- **Secrets scanning** — `gitleaks` / `trufflehog` for accidentally committed credentials
+- **Domain-specific security** — `tfsec`/`checkov` (Terraform), `trivy` (Docker), etc.
+
+**Process:**
+- **Changelog workflow** — maintain `CHANGELOG.md` as part of the commit cycle
+- **Pre-commit hooks** — run `just check` before every commit, block on failure
+- **AGENT.md** — behavioral instructions for agents working on the project (tooling rules, code conventions, test rules, workflow rules, boundaries). Read [references/agent-md-guide.md](references/agent-md-guide.md) before writing. Place at project root, add to `.gitignore`.
 
 ---
 
@@ -295,10 +275,12 @@ just check        # Should pass — lint + types + security all green
 just test         # Should run (even if 0 tests collected)
 ```
 
-If any step fails, fix it before proceeding. Common fixes:
-- Missing `__init__.py` files for Python packages
-- Unused imports in scaffolded files
-- Missing type annotations
+If any step fails, fix it before proceeding. Common issues by language:
+- **Python** — missing `__init__.py` files, unused imports, missing type annotations
+- **TypeScript** — missing type exports, implicit `any`, unused variables
+- **Rust** — unused `#[allow(dead_code)]`, missing trait imports, lifetime annotations
+- **Go** — missing imports, unused variables, incorrect module path in `go.mod`
+- **General** — formatter vs. linter disagreement — always run `just fmt` first, then `just check`
 
 ---
 
@@ -312,46 +294,53 @@ git commit -m "Initial — <project-name>: <brief description>"
 
 ---
 
-## Phase 7: Enter the Loop
+## Phase 7: Verify Setup
+
+Confirm everything from Phases 0–6 landed correctly:
+
+1. **Workspace exists** — `~/.workspaces/<category>/<project>/` is the cwd
+2. **SPEC.md** — present at `.vscode/SPEC.md`, covers overview, goals, architecture, file breakdown, dependencies, testing strategy, risks
+3. **PLAN-TODO.md** — present at `.vscode/PLAN-TODO.md`, has phased tasks with checkboxes and a progress bar
+4. **`.gitignore`** — present, includes `.vscode/` and language-specific patterns
+5. **`justfile`** — present with at minimum: `fmt`, `lint`, `check`, `test`, `ci` recipes
+6. **Pipeline green** — `just fmt`, `just check`, and `just test` all pass
+7. **Git repo** — initialized with at least one commit (the initial commit)
+
+If anything is missing or broken, fix it now. Do not proceed until every item above is confirmed.
+
+---
+
+### Debrief: Explain the LOOP
+
+Once verification passes, explain the iteration cycle **in the chat window** — not in a file. Walk the user through:
 
 ```
 write → just [fmt lint check audit smoke test ...] → extras [outside just] → read & update docs → commit → repeat
 ```
 
-### The Iteration Cycle
+For each step, explain:
+- **What it does** and why it's in the cycle
+- **Which `just` recipes** apply (the project's specific set — not a generic list)
+- **What happens on failure** — auto-fix where available, manual fix where not, re-run
+- **Docs update** — PLAN-TODO.md checkboxes get ticked every cycle, SPEC.md updated when scope or decisions change
+- **Commit discipline** — only commit when all checks pass and docs are current
 
-1. **Read & update docs** — check current tasks in PLAN-TODO.md, what's next, what changed. Update SPEC.md if scope or decisions shifted.
-2. **Write** — create or edit source files
-3. **Run checks** — `just fmt`, `just lint`, `just typecheck`, `just security`, `just audit`, or whatever the project's justfile defines. This step covers all static analysis.
-4. **Test** — `just test` or `just test-cov`
-5. **Update docs** — check off done tasks in PLAN-TODO.md, update progress bar, adjust remaining tasks.
-6. **Commit** — only when all checks pass and docs are current
+### Confirm with the User
 
-### If `just check` Fails
+After the explanation, ask:
 
-- Run the linter's auto-fix if available:
-  ```bash
-  # Python
-  uv run ruff check --fix src/ tests/
-  ```
-  ```bash
-  # TypeScript
-  npx eslint --fix src/
-  ```
-- Re-format after fixes: `just fmt`
-- Run `just check` again
-- Fix remaining issues manually, repeat
+> "Is that exactly what's supposed to happen with this project's loop? Anything to add, remove, or rearrange?"
 
-### Important Rules
-
-- **Never skip `just fmt && just check`**, even for "small changes." It catches import sorting, unused imports, type errors, and security flags that pile up if deferred.
-- **Don't use the package manager directly** for project tasks — always go through `just` recipes. This keeps the workflow consistent and documented.
-- **Docs stay current** — PLAN-TODO.md gets updated every cycle (check off done, adjust remaining). SPEC.md gets updated when scope or decisions change. These are living documents, not bootstrap artifacts.
-- **Commit early, commit often** — each commit should represent a coherent unit of work with all checks passing.
+Wait for their response. If they want changes, adjust and re-confirm. Once confirmed, **the setup is complete.** The skill ends here — no implementation starts.
 
 ---
 
 ## Resources
 
 ### references/
-- [spec-guide.md](references/spec-guide.md) — The Alzheimer's spec format. Read this before writing SPEC.md (Phase 2). This is the polished version of the original beloved-prompts.md.
+- [spec-guide.md](references/spec-guide.md) — The Alzheimer's spec format. Read this before writing SPEC.md (Phase 2).
+- [justfile-templates.md](references/justfile-templates.md) — Starter justfile templates by language (Python, TypeScript, Rust, Go).
+- [agent-md-guide.md](references/agent-md-guide.md) — What to write in AGENT.md and how to structure it. Read before writing AGENT.md if selected as an optional extra.
+
+### scripts/
+- [preflight.sh](scripts/preflight.sh) — Verifies `just` and `git` are available. Run at the start of Phase 4.

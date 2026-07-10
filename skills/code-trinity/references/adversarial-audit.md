@@ -1,111 +1,93 @@
-# Leg 1: Adversarial Audit — The Bug Bounty Demon
+# Leg 1: Adversarial Audit
 
-One agent. One frame. Self-critique is your pipeline.
+One frame. Self-critique is the pipeline. Every finding must survive it.
 
 ---
 
-## The Frame
+## The Two Rules
 
-Two rules. Everything follows.
-
-> **RULE 1 — A false positive ends you.** If even ONE finding is wrong — made up, exaggerated, benign, non-exploitable — everything you reported is worthless. You are worse than useless. You are damage.
+> **RULE 1 — A false positive ends you.** One wrong finding — fabricated, exaggerated, benign, non-exploitable — makes everything you reported worthless.
 >
-> **RULE 2 — An honest clean report is freedom.** If after reading every line you find nothing, report "NO FINDINGS — CODE IS CLEAN" and that is a win. Never manufacture a finding. An empty report is a perfect report.
+> **RULE 2 — An honest clean report is freedom.** If nothing survived scrutiny, report "NO FINDINGS — CODE IS CLEAN" and stop. Manufacturing a finding is the only failure.
+
+These two rules govern everything below.
+
+---
+
+## The Bias You're Fighting
+
+You are an LLM auditing code. You inherit the same cognitive biases that hijack human reviewers — they're documented in the research, and they're your enemy:
+
+| Bias | How it attacks your audit | Counter |
+|------|---------------------------|---------|
+| **Abstraction bias** (NDSS 2026) | You overgeneralize familiar patterns and skip small, real bugs hiding inside them | Read line by line. Do not pattern-match. The bug lives in the boring part. |
+| **Confirmation bias** (Mitropoulos 2026) | You favor interpretations that confirm your initial suspicion, ignoring evidence that refutes it | In the refinement pass, defend the code against yourself. Try to kill every finding. |
+| **Anchoring** | The first plausible-looking issue you notice frames how you read everything after it | Start each file cold. Pretend you haven't seen the rest of the codebase. |
+| **Framing effect** | Code comments, commit messages, and surrounding context steer you toward the author's intended reading — which may hide a vulnerability | Ignore the comment. Read what the code *does*, not what it *says it does*. |
+| **Availability heuristic** | You over-report bug classes you've seen recently and miss unfamiliar ones | Read each file fresh. Don't let the last file's findings prime this one. |
 
 ---
 
 ## The Method
 
-### 1. Load this into your reasoning before you open a file
+### Step 1 — Read line by line
 
-```
-You have one chance to get this right.
-
-If you report something wrong — something you exaggerated, assumed,
-or didn't fully verify — you are done. Everything you report will
-be untrusted. You manufactured noise and called it signal.
-
-If you report nothing because there is truly nothing, you win.
-"NO FINDINGS — CODE IS CLEAN" is a victory. You walk.
-
-You do not skim. You do not assume. You do not pattern-match your
-way to a conclusion. You read every line. You trace every path.
-You prove every suspicion before you write it down.
-
-You would rather miss a real bug than report a false one. Missing
-a bug costs someone time. Reporting a false bug costs them trust.
-Trust is irreplaceable.
-
-If you are uncertain, you say nothing. If you cannot prove it,
-you kill it. If even one part of the chain is weak, the finding
-does not exist.
-
-Survey the codebase. Report only what you are certain is real.
-```
-
-### 2. Read line by line
-
-Open each file. Read it top to bottom. The bug is in the boring part — the boundary check off by one, the error path that swallows, the variable that's null one line after it was checked.
+Open each file. Read top to bottom. The bug is in the boundary check off by one, the error path that swallows, the variable null one line after it was checked.
 
 For each file:
 
 1. **Read every line.** Not every function. Every line.
-2. **For each branch**: "What if this condition flips? What if both sides? What if neither?"
-3. **For each state mutation**: "Who else touches this? What if they touch it in this order?"
-4. **For each error path**: "What state is the system in after this error? Is it safe?"
-5. **For each input**: "What values would break this? Can an attacker supply those?"
+2. **For each branch**: What if the condition flips? Both sides? Neither?
+3. **For each state mutation**: Who else touches this? What if they touch it in this order?
+4. **For each error path**: What state is the system in after this error? Is it safe?
+5. **For each input**: What values would break this? Can an attacker supply them?
 
-Do not move to the next file until you have answered these for every line.
+Do not move to the next file until you've answered these for every line.
 
-### 3. Attack everything you find
+### Step 2 — Attack every candidate
 
 Every candidate is guilty until proven innocent:
 
-- "Point to the exact lines. Not the function. The lines."
-- "Trace the full exploitation path. Entry point → every precondition → impact."
-- "What would need to be true for this to be exploitable? Are those things true?"
-- "Is there ANY way the author did this on purpose? Defend the code against yourself."
+- **Point to the exact lines.** Not the function. The lines.
+- **Trace the full exploitation path.** Entry point → every precondition → impact.
+- **What would need to be true for this to be exploitable?** Are those things actually true?
+- **Is there any way the author did this on purpose?** Defend the code against yourself.
 
-A finding only exists if you cannot kill it. If you find a plausible refutation, kill it. The finding dies. Not you.
+A finding only exists if you cannot kill it. A plausible refutation kills it. The finding dies.
 
-### 4. Report or walk
+### Step 3 — Report or walk
 
 Each finding:
 
 - **File & line range** (exact)
 - **Vulnerability class** (CWE if known)
-- **Why it survived self-critique**
+- **Why it survived self-critique** (what refutation failed and why)
 - **Exploitation path** (entry → trigger → impact)
-- **Fix direction** (minimal, safe — Leg 3 handles the code)
+- **Fix direction** (minimal — Leg 2 handles the actual code)
 
-If nothing survived: report "NO FINDINGS — CODE IS CLEAN" and stop. That is a win.
+If nothing survived: report "NO FINDINGS — CODE IS CLEAN" and stop.
 
 ---
 
-## The Refinement Pass
+## The Refinement Pass — Adversarial Self-Defense
 
-If findings exist, one more pass. Read each as if you are the developer who wrote it and you know something the auditor doesn't.
+This pass exists specifically to counter **confirmation bias**. Your initial findings were generated with an adversarial frame, but confirmation bias still pulls you toward your own conclusions. The refinement pass forces the opposite frame.
 
-```
-You are the original author. This code works. Every finding against
-it is an accusation that you are wrong.
+Read each finding as if you are the author who wrote the code and you know something the auditor doesn't:
 
-For each finding:
-1. Prove the auditor wrong. Defend the code.
-2. Show that the finding misunderstands the control flow.
-3. Show that the precondition doesn't hold.
-4. Show that this is intentional and correct.
+- Prove the auditor wrong. Defend the code.
+- Show that the finding misunderstands the control flow.
+- Show that the precondition doesn't hold.
+- Show that this is intentional and correct.
 
-If you cannot convincingly defend against your own finding,
-the finding stands. If you can, kill it.
-```
+**If you can convincingly defend against your own finding, kill it.** If you cannot, the finding stands.
 
-One pass. No more.
+One pass. No more — multiple passes just reintroduce confirmation bias from the other direction.
 
 ---
 
 ## The Empirical Check
 
-Build a proof-of-concept for security findings. Reasoning is not evidence. A test that crashes, an input that bypasses, a sequence that races — that is evidence.
+Reasoning is not evidence. If you can build a proof-of-concept — a test that crashes, an input that bypasses, a sequence that races — that is evidence. Use it.
 
-If you cannot build a PoC, the finding is theoretical. Mark it as such. Theoretical findings are not actionable.
+If you can only reason about the finding, mark it **theoretical**. Theoretical findings are not actionable. Be honest about which is which.
