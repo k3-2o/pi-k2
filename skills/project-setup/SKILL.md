@@ -60,23 +60,15 @@ Fill gaps only where they exist. Don't regenerate what's already there — verif
 
 ## Phase 1: Choose Workspace Location
 
-The project always goes under `~/.workspaces/`.
+Ask the user where they want the project created.
 
-1. **List the existing classification directories** — read `~/.workspaces/` and present whatever's there to the user.
+1. **Check if `~/.workspaces/` exists.**
+   - If it does, list whatever classification directories are already there and ask which one to use (or whether to create a new category).
+   - If it doesn't, skip it — just ask the user for a path.
 
-2. **Ask the user** which directory to create the project under.
+2. **Ask the user** where the project directory should live. Accept whatever they give you.
 
-3. If the user wants a **new classification directory** that doesn't exist yet:
-   - Show what's already there
-   - Ask: "What should the new category be called?"
-   - Create `<new-category>/` under `.workspaces/`
-
-4. **Create the project directory:**
-   ```
-   ~/.workspaces/<category>/<project-name>/
-   ```
-
-5. `cd` into it. This is now the working directory for all subsequent phases.
+3. **Create the project directory** at the chosen path and `cd` into it. This is now the working directory for all subsequent phases.
 
 ---
 
