@@ -28,7 +28,7 @@
 | Directory | Description |
 |-----------|-------------|
 | `docs-skill/` | Write excellent documentation — READMEs, API refs, architecture docs, tutorials, how-to guides, and changelogs. Diátaxis framework, ethics, and docs-as-code workflows. |
-| `code-trinity/` | Three-lens code audit, quality, and maintainability pipeline — adversarial bug-hunt, codebase intelligence analysis, and human-standards maintainability review with diff-level re-validation. |
+| `adversarial-audit/` | Adversarial code audit — finds real bugs and vulnerabilities with false-positive aversion, applies human-standards fixes with diff-level re-validation, and recommends intelligence tools for additional coverage. |
 | `project-setup/` | Set up or resume project workspaces following the LOOP methodology — SPEC.md, PLAN-TODO.md, just dev pipeline, git init. |
 | `scope/` | Codebase orientation — per-file cards showing entry points, exports, imports, cross-file deps, symbols ranked by importance, and structural anomalies. Use with CLI tool [`scope`](https://github.com/k3-2o/scope). |
 | `skill-creator/` | Create, refactor, validate, and package Agent Skills |

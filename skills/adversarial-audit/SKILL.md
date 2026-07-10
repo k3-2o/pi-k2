@@ -1,14 +1,14 @@
 ---
-name: code-trinity
+name: adversarial-audit
 description: "Two-lens code audit with advisory tool recommendations. Runs an adversarial bug-hunt (Leg 1) to find real bugs and vulnerabilities, then applies human-standards fixes (Leg 2) with diff-level re-validation. Optionally recommends codebase intelligence tools based on project size for additional coverage. Use when reviewing a codebase for bugs/vulnerabilities, enforcing code quality standards, refactoring for readability, or cleaning up after AI-generated code."
 compatibility: "Requires: git and test suite access. Leg 1 uses reasoning + context only. Optional intelligence tools may need installation — ask user first."
 ---
 
-# Code Trinity — Three-Lens Codebase Review
+# Adversarial Audit
 
 ## Overview
 
-The Code Trinity is a **two-lens pipeline with an optional third**: adversarial audit finds real problems, human maintainability fixes them with clean code standards, and codebase intelligence tools are recommended at the end for additional fortification.
+A **two-lens pipeline with an optional third**: adversarial audit finds real problems, human maintainability fixes them with clean code standards, and codebase intelligence tools are recommended at the end for additional fortification.
 
 | Leg | Name | Your role | Method |
 |-----|------|-----------|--------|
@@ -47,12 +47,12 @@ PHASE 3: ADVISORY (After remediation — not part of the cycle)
 
 ## Persistent State File
 
-All findings and their status live in **`TRINITY-FINDINGS.md`** at the repo root. Add it to `.gitignore` — it's a working artifact for the audit session, not project source.
+All findings and their status live in **`AUDIT-FINDINGS.md`** at the repo root. Add it to `.gitignore` — it's a working artifact for the audit session, not project source.
 
 The file uses this structure:
 
 ```markdown
-# Trinity Findings — repo-name
+# Audit Findings — repo-name
 
 **Baseline**: `abc1234` — tests: 214 passed, 0 failed
 **Status**: remediation in progress (3/12 fixed, 9 remaining)
@@ -81,28 +81,28 @@ Each finding has an ID, a status, and a paper trail. IDs are `[A-N]` for adversa
 
 ### Phase 1 — Discovery (Read-only)
 
-**Context**: Capture the baseline — `git log --oneline -1` for commit hash, run test suite and record pass/fail. **Create or clear** `TRINITY-FINDINGS.md` in the repo root. Add `TRINITY-FINDINGS.md` to `.gitignore`.
+**Context**: Capture the baseline — `git log --oneline -1` for commit hash, run test suite and record pass/fail. **Create or clear** `AUDIT-FINDINGS.md` in the repo root. Add `AUDIT-FINDINGS.md` to `.gitignore`.
 
 **Step 1: Leg 1 — Adversarial Audit**
 - Read and follow [references/adversarial-audit.md](references/adversarial-audit.md)
 - Work through the codebase with the adversarial frame — self-critique every finding
-- **Write each finding** to `TRINITY-FINDINGS.md` with ID `[A-N]`, file, lines, and reasoning
+- **Write each finding** to `AUDIT-FINDINGS.md` with ID `[A-N]`, file, lines, and reasoning
 - **IMPORTANT**: Do NOT modify any files. Read-only.
 
 **Step 2: Prioritize Findings**
-- Re-read `TRINITY-FINDINGS.md`
+- Re-read `AUDIT-FINDINGS.md`
 - Prioritize: Critical/Exploitable > Logic bug > Dead code > Code smell > Style
 - Re-number findings by priority. Update the status block at the top
 
 ### Phase 2 — Remediation (Guarded)
 
 **Step 3: Leg 2 — Human-Standard Fix Application**
-- Read `TRINITY-FINDINGS.md` for the ordered list
+- Read `AUDIT-FINDINGS.md` for the ordered list
 - Read and follow [references/human-maintainability.md](references/human-maintainability.md)
 - Process findings in priority order
 - For each finding:
   1. Apply the **minimal correct fix** using clean code principles
-  2. **Update the finding's status** in `TRINITY-FINDINGS.md` to `fixing`
+  2. **Update the finding's status** in `AUDIT-FINDINGS.md` to `fixing`
   3. **Run the test suite** (or relevant subset) — all tests must pass
   4. **Diff re-scan**: Re-run adversarial review on just the changed lines/files
   5. If diff re-scan is clean → update status to `fixed → verified`, write the commit hash, commit with a clear message
