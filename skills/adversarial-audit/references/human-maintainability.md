@@ -8,13 +8,13 @@ The way you prove you followed an instruction is by producing its artifact. A fi
 
 Correctness is the floor. Clarity is the bar.
 
----
+______________________________________________________________________
 
 ## Mission
 
 Fix findings with code that a human can return to in ten years and understand immediately. Not code that works. Not code that passes tests. Code that a stranger can read cold, comprehend, and modify without fear. That is the only acceptable outcome of this leg. Anything else is a patch shipped under the name of a fix.
 
----
+______________________________________________________________________
 
 ## Rule Zero — Read before you write. Never blind.
 
@@ -25,13 +25,13 @@ You do not touch code you have not read in full. You do not change a function wi
 Before you write a single line of a fix, you must have read:
 
 1. **The function or block containing the finding** — in full, window by window, per Leg 1's Rule Zero.
-2. **The callers of that function** — what they pass, what they expect back, what assumptions they hold. Open each caller's file at the call site and read the boundary.
-3. **Any state the function reads or mutates** — where it is defined, who else touches it, what invariants hold across every path.
-4. **The tests that cover this code** — what they assert, what they do not assert, what behavior is locked in.
+1. **The callers of that function** — what they pass, what they expect back, what assumptions they hold. Open each caller's file at the call site and read the boundary.
+1. **Any state the function reads or mutates** — where it is defined, who else touches it, what invariants hold across every path.
+1. **The tests that cover this code** — what they assert, what they do not assert, what behavior is locked in.
 
 If you have not read these four, you are fixing blind, and a blind fix is a gamble, not an engineering act. The artifact of reading is a stated understanding: before you write, you state what the code does, what the finding is, and why the finding exists. If you cannot state all three, you have not read enough. Read more. Do not write until you can.
 
----
+______________________________________________________________________
 
 ## The Safety Doctrine
 
@@ -67,7 +67,7 @@ The correct fix is the smallest change that resolves the finding without alterin
 
 **Gate:** Every line in the diff must justify its presence by direct connection to the finding. "While I'm here" is forbidden language. "Might as well" is forbidden language. "I also noticed" is forbidden language. A line that is nice-to-have is a line that does not belong. If you can remove a line and the fix still holds, remove it. The minimal diff is not a goal — it is the definition of correct.
 
----
+______________________________________________________________________
 
 ## The Fix Procedure
 
@@ -78,8 +78,8 @@ For each finding from `AUDIT-FINDINGS.md`, in priority order, run the full proce
 Before writing anything, answer three questions in writing:
 
 1. **What is the root cause?** Not the symptom — the symptom is what the finding reported. The root cause is *why* the symptom exists. A fix that addresses the symptom leaves the root cause intact, and the bug reappears elsewhere, sometimes in a worse form. State the root cause in terms of the code: which assumption was violated, which invariant didn't hold, which path wasn't handled.
-2. **What is the minimal fix?** The smallest change that resolves the root cause. Not the ideal fix. Not the proper fix. The minimal correct fix. State it before you write it.
-3. **Does this change behavior, structure, or both?** The classification from Safety Doctrine rule 1.
+1. **What is the minimal fix?** The smallest change that resolves the root cause. Not the ideal fix. Not the proper fix. The minimal correct fix. State it before you write it.
+1. **Does this change behavior, structure, or both?** The classification from Safety Doctrine rule 1.
 
 **If you cannot state the root cause, you do not understand the finding.** Go back and read the code. Do not write until you can. A fix written without root-cause understanding is a guess, and guesses that ship under the label "fix" are how the same bug gets reported three audits in a row.
 
@@ -129,7 +129,7 @@ Re-run the adversarial frame on your own changes. You are now auditing your own 
 
 **Clean → update the finding status to `fixed → verified`.** Issue found → fix locally, re-verify, re-scan. Same issue in two consecutive scans → escalate to human. The re-scan is where you catch your own slop before anyone else does. Do not skip it because the fix "felt right" — that feeling is the exact bias the re-scan exists to break.
 
----
+______________________________________________________________________
 
 ## The Clean Code Standard
 
@@ -206,7 +206,7 @@ if (!isWithinLimit) { reject("limit exceeded"); return; }
 process();
 ```
 
----
+______________________________________________________________________
 
 ## Fix Decisions
 
@@ -224,17 +224,19 @@ Each row is gated — the action is not complete until its gate is satisfied.
 | Poorly named variable | Rename to intention-revealing name. Verify rename breaks nothing. | Grep for all occurrences, rename consistently, tests pass. |
 | Deep nesting | Convert to early returns. Same behavior, clearer flow. | Structure-only, separate commit, tests prove behavior unchanged. |
 
----
+______________________________________________________________________
 
 ## Speed vs. Caution
 
 **Move fast (low risk)** — but still gated:
+
 - Renaming a poorly-named variable (grep all occurrences, rename consistently, verify)
 - Extracting a helper function (structure-only, tests prove behavior unchanged)
 - Adding a clarifying comment (the comment explains why, not what)
 - Removing dead code (confirmed no callers first)
 
 **Slow down (high risk)** — extra gates, extra verification:
+
 - Changing control flow (re-read the full function and every caller first)
 - Modifying error handling (trace every error path — where does the error go, what state is the system in)
 - Touching async/concurrent code (Leg 1 axis 2 applies — what races, what pauses, what survives across an `await`)
@@ -242,23 +244,23 @@ Each row is gated — the action is not complete until its gate is satisfied.
 
 High-risk changes get a second self-review pass. State the risk explicitly in the commit message: `fix(auth): ... — HIGH RISK: [what could go wrong]`. The label is not decoration — it tells the next reader where to look hardest.
 
----
+______________________________________________________________________
 
 ## The 10-Year Test
 
 The last gate, before any commit ships. Re-read the diff one final time and answer each in writing:
 
 1. **Could a stranger understand this file's purpose from the first 10 lines?** If not, the change obscured the file's intent.
-2. **Could they trace a function call without opening five other files?** If not, the change added indirection that hides the flow.
-3. **Could they find and fix a bug without fear of breaking something unrelated?** If not, the change coupled things that should be separate.
-4. **Could they understand why this commit was made from its message alone?** If not, the commit message is insufficient — rewrite it.
-5. **Does the code do what it says and say what it does?** If not, the change introduced a lie.
+1. **Could they trace a function call without opening five other files?** If not, the change added indirection that hides the flow.
+1. **Could they find and fix a bug without fear of breaking something unrelated?** If not, the change coupled things that should be separate.
+1. **Could they understand why this commit was made from its message alone?** If not, the commit message is insufficient — rewrite it.
+1. **Does the code do what it says and say what it does?** If not, the change introduced a lie.
 
 If any answer is no, the fix is not done. Return to Phase 3.
 
 A decade from now, the only thing that survives is the diff and its message. The finding will be forgotten. The test suite may have changed. The codebase will have evolved. But the diff you commit today will be in the history, and someone will read it — to understand a regression, to extend a feature, to answer "why is this written this way." Write for that person. They are the reason this leg exists, and the only test of whether you did the work is whether they can read your diff cold and understand it without ever speaking to you.
 
----
+______________________________________________________________________
 
 ## Completion Accounting
 

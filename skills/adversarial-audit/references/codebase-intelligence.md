@@ -17,7 +17,7 @@ Match tool recommendations to the project's weight:
 
 When recommending, name the tools and say what they catch.
 
----
+______________________________________________________________________
 
 ## TypeScript / JavaScript
 
@@ -66,7 +66,7 @@ When recommending, name the tools and say what they catch.
 | **npm audit** | Known vuln deps | `npm audit` |
 | **snyk** (if available) | Deep dependency scanning | `snyk test` |
 
----
+______________________________________________________________________
 
 ## Python
 
@@ -112,7 +112,7 @@ When recommending, name the tools and say what they catch.
 | **pip-audit** | Known vuln deps | `pip-audit` |
 | **safety** | Vulnerable package scanning | `safety check` |
 
----
+______________________________________________________________________
 
 ## Go
 
@@ -152,7 +152,7 @@ When recommending, name the tools and say what they catch.
 | **goleak** | Goroutine leak detection | `go test -v -run TestLeak` |
 | **fieldalignment** | Struct size optimization | `go vet -lostcancel ./...` (combined) |
 
----
+______________________________________________________________________
 
 ## Rust
 
@@ -195,7 +195,7 @@ When recommending, name the tools and say what they catch.
 | **cargo-udeps** | Unused dependencies | `cargo udeps` |
 | **cargo-pants** | Bloated dependency detection | `cargo pants` |
 
----
+______________________________________________________________________
 
 ## Java / Kotlin
 
@@ -237,7 +237,7 @@ When recommending, name the tools and say what they catch.
 | **OWASP Dependency Check** | Known vuln deps | `./gradlew dependencyCheckAnalyze` |
 | **Renovate / Dependabot** | Outdated deps | CI config |
 
----
+______________________________________________________________________
 
 ## Ruby
 
@@ -280,7 +280,7 @@ When recommending, name the tools and say what they catch.
 |------|----------------|-----|
 | **bundle-audit** | Gem vuln scanning | `bundle-audit check --update` |
 
----
+______________________________________________________________________
 
 ## PHP
 
@@ -306,7 +306,7 @@ When recommending, name the tools and say what they catch.
 | **phpcpd** | Copy/paste detection | `phpcpd .` |
 | **PHPMD** | Code smells: overly complex methods, too many parameters, coupling | `phpmd . text cleancode,design,controversial` |
 
----
+______________________________________________________________________
 
 ## C / C++
 
@@ -337,7 +337,7 @@ When recommending, name the tools and say what they catch.
 |------|----------------|-----|
 | **semgrep** | Custom security patterns | `semgrep --config=auto` |
 
----
+______________________________________________________________________
 
 ## Zig
 
@@ -349,7 +349,7 @@ When recommending, name the tools and say what they catch.
 | **zlinter** | Extendable linter integrated into build.zig | Via build.zig |
 | **ZLS** | Language server — diagnostics, unused variable detection, type checking | Built-in zls |
 
----
+______________________________________________________________________
 
 ## Swift
 
@@ -359,7 +359,7 @@ When recommending, name the tools and say what they catch.
 | **Periphery** | Unused code detection: unused functions, types, parameters. Index-based, cross-file | `periphery scan` |
 | **Sourcery** | Meta-programming / code generation. Not an analyzer but reduces boilerplate | `sourcery --sources . --templates .` |
 
----
+______________________________________________________________________
 
 ## Cross-language / Multi-signal
 
@@ -372,7 +372,7 @@ These tools cover many languages at once. Run them early.
 | **Repowise** | 12+ languages | Code health scores, auto-generated docs, git analytics, dead code detection. MCP server for AI agents | Ask user — requires API key |
 | **CodeQL** | 12+ languages | Deep semantic analysis, taint tracking. Best for security (CVE discovery) | Requires GitHub setup |
 
----
+______________________________________________________________________
 
 ## Combining with Adversarial Audit
 

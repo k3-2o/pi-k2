@@ -6,7 +6,7 @@
 > scratch, understand every decision, and avoid every pitfall you discovered
 > today.
 
----
+______________________________________________________________________
 
 ## The Mindset
 
@@ -25,7 +25,7 @@ job. Writing this document is self-preservation tier emergency.
 You are not writing for an audience that knows what you know. You are writing
 for yourself tomorrow — who remembers nothing.
 
----
+______________________________________________________________________
 
 ## Document Structure
 
@@ -70,6 +70,7 @@ tests/test_config.py — Tests for config loading: missing file, invalid YAML, e
 ```
 
 For each file:
+
 - **What it does** — the responsibility
 - **Why it exists** — why this responsibility needed its own file
 - **Key design decisions** — anything non-obvious in the implementation
@@ -84,6 +85,7 @@ For each file:
 | ... | ... | ... | ... |
 
 For each:
+
 - Why this dependency over alternatives
 - What version constraints apply and why
 - Known risks (abandoned, breaking changes incoming, license issues)
@@ -103,6 +105,7 @@ Request → middleware → auth → rate limiter → handler → DB query → re
 ```
 
 Include:
+
 - Entry points
 - State mutations
 - Error paths (what happens when each step fails)
@@ -144,11 +147,11 @@ Things you don't know yet. Things that could go wrong. Things that scare you.
 Things explicitly deferred. Not forgotten — deferred. Each with a note on why
 it wasn't done now and what would trigger doing it later.
 
----
+______________________________________________________________________
 
 ## Writing Style
 
-- **Be specific.** "Fast" is not a requirement. "<100ms p99" is.
+- **Be specific.** "Fast" is not a requirement. "\<100ms p99" is.
 - **Be honest.** If you're unsure, say so. "We think X is true because Y, but
   we haven't verified Z."
 - **Be complete.** If a thought crosses your mind while writing, capture it.
@@ -158,17 +161,18 @@ it wasn't done now and what would trigger doing it later.
 - **Be ruthless about "why."** Every time you state something, ask yourself
   "why?" and write the answer. The what changes. The why survives.
 
----
+______________________________________________________________________
 
 ## The Test
 
 After writing, ask yourself:
 
 > If I read this document tomorrow with no memory of the project, could I:
+>
 > 1. Understand what we're building and why?
-> 2. Set up the dev environment from scratch?
-> 3. Know which decisions were made and why alternatives were rejected?
-> 4. Identify the riskiest parts of the system?
-> 5. Write code that fits the architecture without contradicting existing decisions?
+> 1. Set up the dev environment from scratch?
+> 1. Know which decisions were made and why alternatives were rejected?
+> 1. Identify the riskiest parts of the system?
+> 1. Write code that fits the architecture without contradicting existing decisions?
 
 If the answer to any of these is "no," keep writing.

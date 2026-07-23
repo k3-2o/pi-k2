@@ -1,8 +1,6 @@
----
-name: scope
-description: "Generates compact orientation cards for source files and directories — showing entry points, exports, imports, symbol roles, cross-file dependencies, and structural issues ranked by importance. Use when: dropped into an unfamiliar codebase and cannot name the top 3 most important files; the user gives an open-ended task spanning multiple modules and you need the project map first; about to edit or refactor a file you haven't read yet and need the symbol-level read order; or about to rename or move a shared symbol and need to check what depends on it. Trigger words: orient, explore, overview, map codebase, understand file, code structure, file summary, radar, unfamiliar repo, critical path, read order."
-compatibility: "Requires Python 3.11+ and `uv`. Install with `uv tool install` from the scope repo root."
----
+______________________________________________________________________
+
+## name: scope description: "Generates compact orientation cards for source files and directories — showing entry points, exports, imports, symbol roles, cross-file dependencies, and structural issues ranked by importance. Use when: dropped into an unfamiliar codebase and cannot name the top 3 most important files; the user gives an open-ended task spanning multiple modules and you need the project map first; about to edit or refactor a file you haven't read yet and need the symbol-level read order; or about to rename or move a shared symbol and need to check what depends on it. Trigger words: orient, explore, overview, map codebase, understand file, code structure, file summary, radar, unfamiliar repo, critical path, read order." compatibility: "Requires Python 3.11+ and `uv`. Install with `uv tool install` from the scope repo root."
 
 # Scope
 

@@ -59,8 +59,8 @@
 
 ### Code Blocks
 
-- Always specify the language for syntax highlighting: ` ```python `
-- Use ` ```bash ` for shell commands, not ` ```sh `
+- Always specify the language for syntax highlighting: ```` ```python ````
+- Use ```` ```bash ```` for shell commands, not ```` ```sh ````
 - Commands should be copy-paste friendly (no `$` prompt prefix unless documenting the prompt itself)
 - Show output separately from the command:
   ````
@@ -112,7 +112,8 @@ Remember: **reference direction goes from volatile to stable.** A tutorial (vola
 ## Writing for Translation
 
 If your documentation will be machine-translated:
-- Use short sentences (<25 words)
+
+- Use short sentences (\<25 words)
 - Avoid idioms and humor
 - Use consistent terminology (don't use "start" in one place and "begin" in another)
 - Write out acronyms on first use

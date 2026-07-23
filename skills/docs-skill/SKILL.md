@@ -1,8 +1,6 @@
----
-name: docs-skill
-description: "Write excellent documentation for any project — READMEs, API references, architecture docs, tutorials, how-to guides, contribution guides, and changelogs. Covers audience-first writing, the Diátaxis framework (tutorials, how-to, reference, explanation), documentation ethics, style principles, and docs-as-code workflows. Trigger words: write docs, documentation, document this, how to document, README, docstring, API docs, changelog, contributing guide, user guide, tutorial, explanation, architecture decision record, ADR, technical writing."
-compatibility: "Works with any language or framework. No external tools required."
----
+______________________________________________________________________
+
+## name: docs-skill description: "Write excellent documentation for any project — READMEs, API references, architecture docs, tutorials, how-to guides, contribution guides, and changelogs. Covers audience-first writing, the Diátaxis framework (tutorials, how-to, reference, explanation), documentation ethics, style principles, and docs-as-code workflows. Trigger words: write docs, documentation, document this, how to document, README, docstring, API docs, changelog, contributing guide, user guide, tutorial, explanation, architecture decision record, ADR, technical writing." compatibility: "Works with any language or framework. No external tools required."
 
 # Docs Skill — Writing Documentation That Serves
 
@@ -23,12 +21,12 @@ Documentation is an **ethical responsibility** to your users and your future sel
 ### Documentation Ethics (The ACM Guide)
 
 1. **Be honest.** Don't oversell features, hide limitations, or document what doesn't exist. Wrong docs are worse than no docs.
-2. **Be inclusive.** Use plain language, avoid jargon where possible, and provide accessible examples. Documentation is for everyone who needs it, not just domain insiders.
-3. **Be accountable.** When you deprecate something, document the migration path. When you break API contracts, document the change and its rationale.
-4. **Be current.** Stale documentation is misleading. Treat docs as first-class citizens alongside code — update them in the same PR.
-5. **Respect your reader's time.** Structure for skimming. Lead with the answer. Don't bury the lede in prose.
+1. **Be inclusive.** Use plain language, avoid jargon where possible, and provide accessible examples. Documentation is for everyone who needs it, not just domain insiders.
+1. **Be accountable.** When you deprecate something, document the migration path. When you break API contracts, document the change and its rationale.
+1. **Be current.** Stale documentation is misleading. Treat docs as first-class citizens alongside code — update them in the same PR.
+1. **Respect your reader's time.** Structure for skimming. Lead with the answer. Don't bury the lede in prose.
 
----
+______________________________________________________________________
 
 ## Decision Tree: What Kind of Doc to Write
 
@@ -52,7 +50,7 @@ What is the reader trying to do?
 
 Each type has a specific purpose, audience, and tone. Never mix types in a single document — it confuses readers and dilutes the value of each.
 
----
+______________________________________________________________________
 
 ## The Four Documentation Types (Diátaxis Framework)
 
@@ -61,6 +59,7 @@ Each type has a specific purpose, audience, and tone. Never mix types in a singl
 **Goal:** Guide a newcomer to a successful first outcome. Build confidence.
 
 **How to write:**
+
 - Start from absolute zero. Assume nothing.
 - One clear path from A to B. No branches, no alternatives, no "advanced" tangents.
 - Every step must succeed — test the tutorial yourself on a clean machine.
@@ -72,7 +71,8 @@ Each type has a specific purpose, audience, and tone. Never mix types in a singl
 **Avoid:** Theory, explanations of alternatives, architecture discussions, edge cases.
 
 **Checklist:**
-- [ ] Reader can complete it in one sitting (<30 min)
+
+- [ ] Reader can complete it in one sitting (\<30 min)
 - [ ] No unexplained prerequisites
 - [ ] Every command/code block is tested
 - [ ] Expected output is shown
@@ -83,6 +83,7 @@ Each type has a specific purpose, audience, and tone. Never mix types in a singl
 **Goal:** Solve a real problem a user has right now.
 
 **How to write:**
+
 - Start with the problem statement in the title or first sentence: "How to reset a user's password"
 - Assume the reader has basic competence but not deep domain knowledge.
 - Give steps in the order they should be performed.
@@ -94,6 +95,7 @@ Each type has a specific purpose, audience, and tone. Never mix types in a singl
 **Avoid:** Teaching fundamentals (that's a tutorial), long explanations (that's an explanation), listing every API option (that's reference).
 
 **Checklist:**
+
 - [ ] Title clearly states the problem being solved
 - [ ] Prerequisites are listed upfront
 - [ ] Steps are in execution order
@@ -105,6 +107,7 @@ Each type has a specific purpose, audience, and tone. Never mix types in a singl
 **Goal:** Provide accurate, complete, authoritative descriptions of the system's components.
 
 **How to write:**
+
 - Be exhaustive. Every parameter, every option, every return value.
 - Be precise. No ambiguity, no opinions, no design rationale.
 - Be consistent. Use the same terminology and format throughout.
@@ -116,6 +119,7 @@ Each type has a specific purpose, audience, and tone. Never mix types in a singl
 **Avoid:** Tutorial content, problem-solving, teaching concepts, opinions.
 
 **Checklist:**
+
 - [ ] Every public API surface is covered
 - [ ] Parameters and return values are documented with types
 - [ ] Examples show realistic usage
@@ -127,6 +131,7 @@ Each type has a specific purpose, audience, and tone. Never mix types in a singl
 **Goal:** Provide context, background, and reasoning. Answer "why" questions.
 
 **How to write:**
+
 - Start with the higher-level concept or design principle.
 - Use analogies, diagrams, and comparisons liberally.
 - This is where you document design decisions, trade-offs, and historical context.
@@ -138,13 +143,14 @@ Each type has a specific purpose, audience, and tone. Never mix types in a singl
 **Avoid:** Step-by-step instructions, API listings, setup procedures.
 
 **Checklist:**
+
 - [ ] Explains the reasoning behind design choices
 - [ ] Discusses trade-offs and why decisions were made
 - [ ] Includes diagrams or visual aids if the concept is complex
 - [ ] Links to related tutorials, how-tos, and reference docs
 - [ ] Does not contain setup instructions or commands to run
 
----
+______________________________________________________________________
 
 ## Anatomy of Common Documents
 
@@ -153,12 +159,12 @@ Each type has a specific purpose, audience, and tone. Never mix types in a singl
 The README is the **front door** of your project. It's the most-read document. It must answer three questions in the first paragraph:
 
 1. **What is this?** — One-sentence description of the project.
-2. **Why should I care?** — What problem it solves, who it's for.
-3. **How do I get started?** — The shortest possible path to a success experience.
+1. **Why should I care?** — What problem it solves, who it's for.
+1. **How do I get started?** — The shortest possible path to a success experience.
 
 **Structure:**
 
-```markdown
+````markdown
 # Project Name
 
 > One-line description. Clear, benefit-driven.
@@ -174,7 +180,7 @@ The absolute shortest path from zero to working. Copy-paste friendly.
 ```bash
 pip install my-thing
 my-thing --do-stuff
-```
+````
 
 ## Usage
 
@@ -191,6 +197,7 @@ Brief note on how to contribute. Link to CONTRIBUTING.md.
 ## License
 
 MIT — see LICENSE.
+
 ```
 
 ### API Reference
@@ -214,18 +221,23 @@ MIT — see LICENSE.
 - Never editorialize or explain rationale — that's for the commit message or ADR
 
 ```
+
 ## [2.0.0] — 2025-06-15
 
 ### Added
+
 - Rate limiting with configurable thresholds (#142)
 - Webhook signature verification (#138)
 
 ### Changed
+
 - Authentication now requires API key in header (was query param)
 - Dropped support for Python 3.8
 
 ### Removed
+
 - Legacy v1 API endpoints (deprecated since 1.5.0)
+
 ```
 
 ### Architecture Decision Record (ADR)
@@ -353,3 +365,4 @@ When reviewing existing docs or planning new ones, run through these:
 - [Write the Docs](https://www.writethedocs.org/guide/) — Community-curated documentation guide
 - [Keep a Changelog](https://keepachangelog.com/) — Changelog format standard
 - [Producing OSS](https://producingoss.com/) — Guide to running open source projects
+```

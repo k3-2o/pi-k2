@@ -373,6 +373,17 @@ export default function omniSearchGateway(pi: ExtensionAPI) {
     },
 
     renderResult(result, { expanded }, theme) {
+      if (result.isError) {
+        const text = result.content?.[0];
+        const msg = text?.type === "text" ? text.text : "aborted";
+        const preview = msg.length > 80 ? msg.slice(0, 77) + "..." : msg;
+        const line =
+          theme.fg("error", "✗ ") +
+          theme.fg("dim", "web_search: ") +
+          theme.fg("muted", preview);
+        return new Text(line, 0, 0);
+      }
+
       const d = result.details as OmniSearchDetails | undefined;
       if (!d) {
         const text = result.content?.[0];
@@ -410,6 +421,10 @@ export default function omniSearchGateway(pi: ExtensionAPI) {
       const errors: string[] = [];
 
       for (const provider of routing) {
+        if (signal?.aborted) {
+          throw new Error("web_search: aborted");
+        }
+
         const apiKey = process.env[provider.envKey];
 
         if (!apiKey) {
@@ -451,6 +466,9 @@ export default function omniSearchGateway(pi: ExtensionAPI) {
             details,
           };
         } catch (err) {
+          if (signal?.aborted) {
+            throw new Error("web_search: aborted");
+          }
           const msg = err instanceof Error ? err.message : String(err);
           errors.push(`${provider.id}: ${msg}`);
           continue;

@@ -82,6 +82,54 @@ interface AskUserQuestionResult {
 const OTHER_VALUE = "__ask_other__";
 const OTHER_LABEL = "Type custom instruction...";
 
+// ── Gate — serializes concurrent questions ──────────────────────────
+let isQuestionActive = false;
+const questionQueue: Array<() => void> = [];
+
+/**
+ * Acquire the question slot. If another question is active, the caller
+ * is queued and awaits its turn.  Returns immediately if the slot is free.
+ * Throws AbortError if `signal` fires before the slot is acquired.
+ */
+function acquireSlot(signal?: AbortSignal): Promise<void> {
+	if (!isQuestionActive) {
+		isQuestionActive = true;
+		return Promise.resolve();
+	}
+
+	return new Promise<void>((resolve, reject) => {
+		const onAbort = () => {
+			const idx = questionQueue.indexOf(proceed);
+			if (idx !== -1) questionQueue.splice(idx, 1);
+			reject(new DOMException("Aborted", "AbortError"));
+		};
+
+		const proceed = (err?: unknown) => {
+			signal?.removeEventListener("abort", onAbort);
+			if (err) {
+				reject(err);
+			} else {
+				isQuestionActive = true;
+				resolve();
+			}
+		};
+
+		if (signal?.aborted) {
+			reject(new DOMException("Aborted", "AbortError"));
+			return;
+		}
+
+		signal?.addEventListener("abort", onAbort, { once: true });
+		questionQueue.push(proceed);
+	});
+}
+
+function releaseSlot(): void {
+	isQuestionActive = false;
+	const next = questionQueue.shift();
+	if (next) next();
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 /** Word-wrap text at `maxWidth`, breaking at word boundaries. */
@@ -134,6 +182,8 @@ export default function askUserQuestion(pi: ExtensionAPI) {
 		label: "Ask User Question",
 		description:
 			"Pause execution and ask the user a multiple-choice question. " +
+			"Multiple concurrent calls are automatically queued and presented " +
+			"one at a time, so you can gather several user decisions in parallel. " +
 			"Use this when you are uncertain about the user's preferences, " +
 			"encounter multiple valid architectural paths, or need explicit " +
 			"permission before taking action. Each option can include a description " +
@@ -142,12 +192,13 @@ export default function askUserQuestion(pi: ExtensionAPI) {
 		parameters: AskUserQuestionParams,
 
 		promptSnippet:
-			"Ask the user a multiple-choice question (pauses execution until user responds)",
+			"Ask the user one or more multiple-choice questions (queued one at a time; pauses execution until user responds)",
 
 		promptGuidelines: [
 			"Use AskUserQuestion when facing ambiguity, multiple valid paths, or when explicit user permission/preference is needed before writing code.",
 			"Each option should include a description explaining the trade-offs so the user understands the implications of their choice.",
 			"Prefer AskUserQuestion over making assumptions. When in doubt, ask.",
+			"You can issue multiple AskUserQuestion calls at once — they are queued and presented one at a time, so feel free to gather several decisions in parallel.",
 		],
 
 		// ── Execute ─────────────────────────────────────────────────────
@@ -218,195 +269,18 @@ export default function askUserQuestion(pi: ExtensionAPI) {
 				{ label: OTHER_LABEL, value: OTHER_VALUE },
 			];
 
-			// ── Interactive UI ──────────────────────────────────────────
+			// ── Acquire gate slot (queues if another question is active) ──
 
-			const result = await ctx.ui.custom<{
-				answer: string;
-				wasCustom: boolean;
-				label: string;
-			} | null>((tui, theme, _kb, done) => {
-				// State
-				let mode: "options" | "editor" = "options";
-				let optionIndex = 0;
-				let cachedLines: string[] | undefined;
-
-				// Editor for free-form input
-				const editorTheme: EditorTheme = {
-					borderColor: (s: string) => theme.fg("accent", s),
-					selectList: {
-						selectedPrefix: (t: string) => theme.fg("accent", t),
-						selectedText: (t: string) => theme.fg("accent", t),
-						description: (t: string) => theme.fg("muted", t),
-						scrollInfo: (t: string) => theme.fg("dim", t),
-						noMatch: (t: string) => theme.fg("warning", t),
-					},
-				};
-				const editor = new Editor(tui, editorTheme);
-
-				editor.onSubmit = (value: string) => {
-					const trimmed = value.trim();
-					if (trimmed) {
-						done({ answer: trimmed, wasCustom: true, label: trimmed });
-					} else {
-						mode = "options";
-						editor.setText("");
-						refresh();
-					}
-				};
-
-				function refresh() {
-					cachedLines = undefined;
-					tui.requestRender();
-				}
-
-				// ── Input ────────────────────────────────────────────────
-
-				function handleInput(data: string): void {
-					if (mode === "editor") {
-						if (matchesKey(data, Key.escape)) {
-							mode = "options";
-							editor.setText("");
-							refresh();
-							return;
-						}
-						editor.handleInput(data);
-						refresh();
-						return;
-					}
-
-					// Option navigation
-					if (matchesKey(data, Key.up)) {
-						optionIndex = Math.max(0, optionIndex - 1);
-						refresh();
-						return;
-					}
-					if (matchesKey(data, Key.down)) {
-						optionIndex = Math.min(allOptions.length - 1, optionIndex + 1);
-						refresh();
-						return;
-					}
-
-					// Select
-					if (matchesKey(data, Key.enter)) {
-						const selected = allOptions[optionIndex]!;
-						if (selected.value === OTHER_VALUE) {
-							mode = "editor";
-							editor.setText("");
-							refresh();
-						} else {
-							done({
-								answer: selected.value,
-								wasCustom: false,
-								label: selected.label,
-							});
-						}
-						return;
-					}
-
-					// Cancel
-					if (matchesKey(data, Key.escape)) {
-						done(null);
-					}
-				}
-
-				// ── Render ───────────────────────────────────────────────
-
-				function render(width: number): string[] {
-					if (cachedLines) return cachedLines;
-
-					const lines: string[] = [];
-					const add = (s: string) => lines.push(truncateToWidth(s, width));
-
-					// Top border
-					add(theme.fg("accent", theme.bold("\u2500".repeat(width))));
-
-					// Heading (optional)
-					if (params.heading) {
-						add(theme.fg("accent", theme.bold(`  ${params.heading}`)));
-						lines.push("");
-					}
-
-					// Question
-					add(theme.fg("text", `  ${params.question}`));
-					lines.push("");
-
-					if (mode === "editor") {
-						// Editor mode — free-form text input
-						add(theme.fg("muted", "  Type your custom instruction:"));
-						lines.push("");
-						for (const line of editor.render(width - 2)) {
-							add(` ${line}`);
-						}
-						lines.push("");
-						add(theme.fg("dim", "  Enter to submit  \u2022  Esc to go back"));
-					} else {
-						// Options mode — arrow-key selection
-						for (let i = 0; i < allOptions.length; i++) {
-							const opt = allOptions[i]!;
-							const selected = i === optionIndex;
-							const isOther = opt.value === OTHER_VALUE;
-
-							// Build the line prefix and content
-							const pointer = selected
-								? theme.fg("accent", " \u25b6 ")
-								: "   ";
-
-							let content: string;
-							if (isOther) {
-								// The "Type custom instruction..." escape hatch
-								content = selected
-									? theme.fg("accent", `\u270e ${opt.label}`)
-									: theme.fg("muted", opt.label);
-							} else if (selected) {
-								content = theme.fg("accent", theme.bold(`${i + 1}. ${opt.label}`));
-							} else {
-								content = theme.fg("text", `${i + 1}. ${opt.label}`);
-							}
-
-							add(`${pointer}${content}`);
-
-							// Description below each option (word-wrapped)
-							if (opt.description) {
-								const descWidth = Math.max(20, width - 6);
-								const wrapped = wordWrap(opt.description, descWidth);
-								for (const line of wrapped) {
-									const colored = selected
-										? theme.fg("muted", line)
-										: theme.fg("dim", line);
-									add(`      ${colored}`);
-								}
-							}
-						}
-					}
-
-					lines.push("");
-					add(theme.fg("dim", "  \u2191\u2193 navigate  \u2022  Enter select  \u2022  Esc cancel"));
-					add(theme.fg("accent", theme.bold("\u2500".repeat(width))));
-
-					cachedLines = lines;
-					return lines;
-				}
-
-				return {
-					render,
-					invalidate: () => {
-						cachedLines = undefined;
-					},
-					handleInput,
-				};
-			});
-
-			// ── Build return value ──────────────────────────────────────
-
-			if (!result) {
+			try {
+				await acquireSlot(signal);
+			} catch {
 				return {
 					content: [
 						{
 							type: "text",
 							text:
-								"User cancelled the question. Do not proceed with " +
-								"assumptions — either ask again or wait for the user " +
-								"to provide their own instruction.",
+								"Question cancelled before displaying. Do not proceed " +
+								"with assumptions — wait for the user's next instruction.",
 						},
 					],
 					details: {
@@ -419,14 +293,238 @@ export default function askUserQuestion(pi: ExtensionAPI) {
 				};
 			}
 
-			if (result.wasCustom) {
+			try {
+				// ── Interactive UI ──────────────────────────────────────────
+
+				const result = await ctx.ui.custom<{
+					answer: string;
+					wasCustom: boolean;
+					label: string;
+				} | null>((tui, theme, _kb, done) => {
+					// State
+					let mode: "options" | "editor" = "options";
+					let optionIndex = 0;
+					let cachedLines: string[] | undefined;
+
+					// Editor for free-form input
+					const editorTheme: EditorTheme = {
+						borderColor: (s: string) => theme.fg("accent", s),
+						selectList: {
+							selectedPrefix: (t: string) => theme.fg("accent", t),
+							selectedText: (t: string) => theme.fg("accent", t),
+							description: (t: string) => theme.fg("muted", t),
+							scrollInfo: (t: string) => theme.fg("dim", t),
+							noMatch: (t: string) => theme.fg("warning", t),
+						},
+					};
+					const editor = new Editor(tui, editorTheme);
+
+					editor.onSubmit = (value: string) => {
+						const trimmed = value.trim();
+						if (trimmed) {
+							done({ answer: trimmed, wasCustom: true, label: trimmed });
+						} else {
+							mode = "options";
+							editor.setText("");
+							refresh();
+						}
+					};
+
+					function refresh() {
+						cachedLines = undefined;
+						tui.requestRender();
+					}
+
+					// ── Input ────────────────────────────────────────────────
+
+					function handleInput(data: string): void {
+						if (mode === "editor") {
+							if (matchesKey(data, Key.escape)) {
+								mode = "options";
+								editor.setText("");
+								refresh();
+								return;
+							}
+							editor.handleInput(data);
+							refresh();
+							return;
+						}
+
+						// Option navigation
+						if (matchesKey(data, Key.up)) {
+							optionIndex = Math.max(0, optionIndex - 1);
+							refresh();
+							return;
+						}
+						if (matchesKey(data, Key.down)) {
+							optionIndex = Math.min(allOptions.length - 1, optionIndex + 1);
+							refresh();
+							return;
+						}
+
+						// Select
+						if (matchesKey(data, Key.enter)) {
+							const selected = allOptions[optionIndex]!;
+							if (selected.value === OTHER_VALUE) {
+								mode = "editor";
+								editor.setText("");
+								refresh();
+							} else {
+								done({
+									answer: selected.value,
+									wasCustom: false,
+									label: selected.label,
+								});
+							}
+							return;
+						}
+
+						// Cancel
+						if (matchesKey(data, Key.escape)) {
+							done(null);
+						}
+					}
+
+					// ── Render ───────────────────────────────────────────────
+
+					function render(width: number): string[] {
+						if (cachedLines) return cachedLines;
+
+						const lines: string[] = [];
+						const add = (s: string) => lines.push(truncateToWidth(s, width));
+
+						// Top border
+						add(theme.fg("accent", theme.bold("\u2500".repeat(width))));
+
+						// Heading (optional)
+						if (params.heading) {
+							add(theme.fg("accent", theme.bold(`  ${params.heading}`)));
+							lines.push("");
+						}
+
+						// Question
+						add(theme.fg("text", `  ${params.question}`));
+						lines.push("");
+
+						if (mode === "editor") {
+							// Editor mode — free-form text input
+							add(theme.fg("muted", "  Type your custom instruction:"));
+							lines.push("");
+							for (const line of editor.render(width - 2)) {
+								add(` ${line}`);
+							}
+							lines.push("");
+							add(theme.fg("dim", "  Enter to submit  \u2022  Esc to go back"));
+						} else {
+							// Options mode — arrow-key selection
+							for (let i = 0; i < allOptions.length; i++) {
+								const opt = allOptions[i]!;
+								const selected = i === optionIndex;
+								const isOther = opt.value === OTHER_VALUE;
+
+								// Build the line prefix and content
+								const pointer = selected
+									? theme.fg("accent", " \u25b6 ")
+									: "   ";
+
+								let content: string;
+								if (isOther) {
+									// The "Type custom instruction..." escape hatch
+									content = selected
+										? theme.fg("accent", `\u270e ${opt.label}`)
+										: theme.fg("muted", opt.label);
+								} else if (selected) {
+									content = theme.fg("accent", theme.bold(`${i + 1}. ${opt.label}`));
+								} else {
+									content = theme.fg("text", `${i + 1}. ${opt.label}`);
+								}
+
+								add(`${pointer}${content}`);
+
+								// Description below each option (word-wrapped)
+								if (opt.description) {
+									const descWidth = Math.max(20, width - 6);
+									const wrapped = wordWrap(opt.description, descWidth);
+									for (const line of wrapped) {
+										const colored = selected
+											? theme.fg("muted", line)
+											: theme.fg("dim", line);
+										add(`      ${colored}`);
+									}
+								}
+							}
+						}
+
+						lines.push("");
+						add(theme.fg("dim", "  \u2191\u2193 navigate  \u2022  Enter select  \u2022  Esc cancel"));
+						add(theme.fg("accent", theme.bold("\u2500".repeat(width))));
+
+						cachedLines = lines;
+						return lines;
+					}
+
+					return {
+						render,
+						invalidate: () => {
+							cachedLines = undefined;
+						},
+						handleInput,
+					};
+				});
+
+				// ── Build return value ──────────────────────────────────────
+
+				if (!result) {
+					return {
+						content: [
+							{
+								type: "text",
+								text:
+									"User cancelled the question. Do not proceed with " +
+									"assumptions — either ask again or wait for the user " +
+									"to provide their own instruction.",
+							},
+						],
+						details: {
+							question: params.question,
+							heading: params.heading,
+							options: optionsSummary,
+							answer: null,
+							wasCustom: false,
+						} satisfies AskUserQuestionResult,
+					};
+				}
+
+				if (result.wasCustom) {
+					return {
+						content: [
+							{
+								type: "text",
+								text:
+									`User's custom instruction: "${result.answer}"\n\n` +
+									"Resume execution following the user's exact instructions above.",
+							},
+						],
+						details: {
+							question: params.question,
+							heading: params.heading,
+							options: optionsSummary,
+							answer: result.answer,
+							wasCustom: true,
+						} satisfies AskUserQuestionResult,
+					};
+				}
+
+				const chosen = userOptions.find((o) => o.value === result.answer);
+				const chosenLabel = chosen?.label ?? result.answer;
+
 				return {
 					content: [
 						{
 							type: "text",
 							text:
-								`User's custom instruction: "${result.answer}"\n\n` +
-								"Resume execution following the user's exact instructions above.",
+								`User selected: "${chosenLabel}"\n\n` +
+								"Resume execution respecting the user's choice above.",
 						},
 					],
 					details: {
@@ -434,31 +532,12 @@ export default function askUserQuestion(pi: ExtensionAPI) {
 						heading: params.heading,
 						options: optionsSummary,
 						answer: result.answer,
-						wasCustom: true,
+						wasCustom: false,
 					} satisfies AskUserQuestionResult,
 				};
+			} finally {
+				releaseSlot();
 			}
-
-			const chosen = userOptions.find((o) => o.value === result.answer);
-			const chosenLabel = chosen?.label ?? result.answer;
-
-			return {
-				content: [
-					{
-						type: "text",
-						text:
-							`User selected: "${chosenLabel}"\n\n` +
-							"Resume execution respecting the user's choice above.",
-					},
-				],
-				details: {
-					question: params.question,
-					heading: params.heading,
-					options: optionsSummary,
-					answer: result.answer,
-					wasCustom: false,
-				} satisfies AskUserQuestionResult,
-			};
 		},
 
 		// ── Render Call (TUI display when tool is invoked) ──────────────
@@ -496,5 +575,15 @@ export default function askUserQuestion(pi: ExtensionAPI) {
 			const display = chosen ? `"${chosen.label}"` : details.answer;
 			return new Text(theme.fg("success", "\u2713 ") + theme.fg("text", display), 0, 0);
 		},
+	});
+
+	// ── Drain queue on session shutdown ────────────────────────────────
+
+	pi.on("session_shutdown", () => {
+		const rest = questionQueue.splice(0);
+		for (const fn of rest) {
+			fn(new DOMException("Session closed", "AbortError"));
+		}
+		isQuestionActive = false;
 	});
 }

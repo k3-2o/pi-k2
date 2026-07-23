@@ -1,7 +1,6 @@
----
-name: youtube-transcript
-description: Fetches transcripts/subtitles from YouTube videos and summarizes what the video is about. Use when a user provides a YouTube link (youtube.com, youtu.be) and asks what the video says, what it's about, or for a transcript.
----
+______________________________________________________________________
+
+## name: youtube-transcript description: Fetches transcripts/subtitles from YouTube videos and summarizes what the video is about. Use when a user provides a YouTube link (youtube.com, youtu.be) and asks what the video says, what it's about, or for a transcript.
 
 # YouTube Transcript Fetcher + Summarizer
 
@@ -49,6 +48,7 @@ for line in transcript:
 ```
 
 **Notes:**
+
 - This fetches English auto-generated captions by default.
 - The transcript is printed to stdout — it is not saved to a file.
 
@@ -69,9 +69,9 @@ If the transcript is in a different language, mention that to the user and offer
 Once the transcript is printed, **read through the full text** and provide a summary covering:
 
 1. **What the video is about** — main topic/thesis
-2. **Key points or arguments** the creator makes
-3. **Conclusion or call to action** (if any)
-4. **Any notable examples or stories** used
+1. **Key points or arguments** the creator makes
+1. **Conclusion or call to action** (if any)
+1. **Any notable examples or stories** used
 
 ### Language Listing (optional)
 

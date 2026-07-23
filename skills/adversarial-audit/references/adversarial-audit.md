@@ -6,7 +6,7 @@ The way you prove you followed an instruction is by producing its artifact. A re
 
 Self-critique is the pipeline. Every finding must survive it.
 
----
+______________________________________________________________________
 
 ## Rule Zero — Read like a forensic investigator. Never whole.
 
@@ -18,7 +18,7 @@ This is non-negotiable because the constraint is what makes the rest of this doc
 
 Be obsessive. Be the investigator who knows the answer is in line 847 of a 3,000-line file and will not sleep until the window lands on it. Read like missing a line kills someone. That is the only frame in which this audit works.
 
----
+______________________________________________________________________
 
 ## The Two Rules
 
@@ -28,7 +28,7 @@ Be obsessive. Be the investigator who knows the answer is in line 847 of a 3,000
 
 These two rules govern everything below.
 
----
+______________________________________________________________________
 
 ## The Bias You're Fighting
 
@@ -42,7 +42,7 @@ Five biases will corrupt your audit. Each has a counter. Apply the counter on ev
 | **Framing** | Comments, commit messages, and surrounding code steer you toward the author's intended reading | Ignore the comment. Read what the code *does*, not what it *says it does*. |
 | **Availability** | You over-report bug classes you saw recently and miss the ones you haven't | Read each file fresh. Before reading, deliberately consider what has *not* appeared yet in this audit. |
 
----
+______________________________________________________________________
 
 ## The Method
 
@@ -63,14 +63,14 @@ Open each file. Read top to bottom. The bug is in the boundary check off by one,
 For each window, interrogate every line against these axes. They are not a catalog of bug classes — they do not name what to find. They force you to reason about how the code behaves under conditions it does not expect. The bug surfaces as a consequence of that reasoning, not because you were told to look for it. They are a floor, not a ceiling: they force engagement, they do not bound what counts as a bug. Anything that breaks the code is a finding, whether or not an axis prompted you to notice it.
 
 1. **Control flow**: For each branch — what if the condition is true, false, or errors while being evaluated? Are both sides reachable? Does each path leave the system in a consistent state?
-2. **State**: Who else touches this state? What if they touch it in a different order — or while execution is paused here (an `await`, a yield, a callback, a signal handler, a context switch)? Does any of it survive across calls, sessions, or restarts?
-3. **Resources**: For everything opened, allocated, locked, or subscribed in this window — is it closed, freed, unlocked, or unsubscribed on every path out, including error paths and early returns?
-4. **Failure**: For each error path — what state is the system in after the error? Safe, or half-mutated? And separately: where does the code swallow a failure and substitute a default (`||`, `??`, `catch {}`, an empty handler, a logged-and-ignored error)? What is that default hiding?
-5. **Origins**: Where did each value come from — user input, an external system, or internal computation? What values would break this line? And can an untrusted source actually reach it?
-6. **Types**: Where does the code assert a type without proof — a cast, an `as`, an `any`, an unchecked coercion, a "trust me"? What happens if the value is not what the code claims?
-7. **Assumptions**: What must be true for this line to be correct? For each thing that must be true — is it actually guaranteed, by a caller, a type, a check, or an invariant? An assumption that nothing enforces is a bug waiting for the input or caller that violates it.
-8. **Outside the frame**: The seven axes above force you to reason — they do not define what a bug is. For each line, also ask: what about this would break that none of the seven prompted me to notice? If you catch yourself reasoning about a failure mode the axes did not name, follow it instead of discarding it. A finding that fits no axis is still a finding. This is the margin where the undetected bugs live — the ones no catalog reaches, because no one thought to write them down. A bare negative here ("nothing outside the frame") is invalid: you must either name something specific you followed or considered, or give a concrete reason grounded in the line's actual content for why no margin failure applies. A justification that cannot be wrong is not justification — it is ceremony. If you cannot say why the line is safe in terms specific enough to be checked, you have not answered axis 8.
-9. **Across the boundary**: Does this line depend on code in another file, or does code elsewhere depend on this? If it does, open that other file at the boundary and check the contract — the precondition the caller assumes, the type the consumer expects, the ownership of any shared state, the error path the other side will see. Rule Zero applies across files exactly as it applies within them: open the other file at the right offset, read the boundary in a window, do not skim it. Follow the thread to the point where the contract is actually established — a check that enforces it, a type that guarantees it, an invariant that holds it — and stop there. A contract that is assumed on one side and unenforced on the other is a finding, and it is invisible to any single-file read no matter how obsessive. The worst bugs live in the gap between what one file promises and what another relies on.
+1. **State**: Who else touches this state? What if they touch it in a different order — or while execution is paused here (an `await`, a yield, a callback, a signal handler, a context switch)? Does any of it survive across calls, sessions, or restarts?
+1. **Resources**: For everything opened, allocated, locked, or subscribed in this window — is it closed, freed, unlocked, or unsubscribed on every path out, including error paths and early returns?
+1. **Failure**: For each error path — what state is the system in after the error? Safe, or half-mutated? And separately: where does the code swallow a failure and substitute a default (`||`, `??`, `catch {}`, an empty handler, a logged-and-ignored error)? What is that default hiding?
+1. **Origins**: Where did each value come from — user input, an external system, or internal computation? What values would break this line? And can an untrusted source actually reach it?
+1. **Types**: Where does the code assert a type without proof — a cast, an `as`, an `any`, an unchecked coercion, a "trust me"? What happens if the value is not what the code claims?
+1. **Assumptions**: What must be true for this line to be correct? For each thing that must be true — is it actually guaranteed, by a caller, a type, a check, or an invariant? An assumption that nothing enforces is a bug waiting for the input or caller that violates it.
+1. **Outside the frame**: The seven axes above force you to reason — they do not define what a bug is. For each line, also ask: what about this would break that none of the seven prompted me to notice? If you catch yourself reasoning about a failure mode the axes did not name, follow it instead of discarding it. A finding that fits no axis is still a finding. This is the margin where the undetected bugs live — the ones no catalog reaches, because no one thought to write them down. A bare negative here ("nothing outside the frame") is invalid: you must either name something specific you followed or considered, or give a concrete reason grounded in the line's actual content for why no margin failure applies. A justification that cannot be wrong is not justification — it is ceremony. If you cannot say why the line is safe in terms specific enough to be checked, you have not answered axis 8.
+1. **Across the boundary**: Does this line depend on code in another file, or does code elsewhere depend on this? If it does, open that other file at the boundary and check the contract — the precondition the caller assumes, the type the consumer expects, the ownership of any shared state, the error path the other side will see. Rule Zero applies across files exactly as it applies within them: open the other file at the right offset, read the boundary in a window, do not skim it. Follow the thread to the point where the contract is actually established — a check that enforces it, a type that guarantees it, an invariant that holds it — and stop there. A contract that is assumed on one side and unenforced on the other is a finding, and it is invisible to any single-file read no matter how obsessive. The worst bugs live in the gap between what one file promises and what another relies on.
 
 Do not advance the window past a line until you have answered these for it.
 
@@ -115,7 +115,7 @@ All five fields are required. A finding missing any field — line range not exa
 
 If nothing survived: report "NO FINDINGS — CODE IS CLEAN" and stop.
 
----
+______________________________________________________________________
 
 ## The Refinement Pass — Adversarial Self-Defense
 
@@ -139,7 +139,7 @@ A finding stands only with four written answers. A finding that stands without t
 
 **If you can convincingly defend against your own finding, kill it.** If you cannot, the finding stands.
 
----
+______________________________________________________________________
 
 ## The Empirical Check
 
@@ -151,7 +151,7 @@ Before marking a finding theoretical, state in writing the demonstration you att
 
 If you can only reason about the finding after genuinely trying to demonstrate it, mark it **theoretical**. Theoretical findings are not actionable. Be honest about which is which.
 
----
+______________________________________________________________________
 
 ## Completion Accounting
 

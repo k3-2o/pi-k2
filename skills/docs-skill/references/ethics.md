@@ -5,6 +5,7 @@
 ## The Ethical Obligation to Document
 
 Software is used by people. Documentation is the bridge between the code and its users. When that bridge is missing, broken, or misleading:
+
 - Users waste time (theirs and yours)
 - Decisions are repeated because their rationale is lost
 - Bugs are introduced because assumptions went unrecorded

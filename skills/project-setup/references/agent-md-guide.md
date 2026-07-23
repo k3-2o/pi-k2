@@ -11,7 +11,9 @@ AGENT.md is a concise set of behavioral instructions for AI agents working on th
 ## What Belongs in AGENT.md
 
 ### 1. Tooling Rules
+
 How to use the project's tools correctly.
+
 ```
 - Use `just ci` before every commit — never commit with a failing pipeline
 - Format with `just fmt`, never run formatters manually
@@ -19,7 +21,9 @@ How to use the project's tools correctly.
 ```
 
 ### 2. Code Conventions
+
 Project-specific patterns the agent should follow.
+
 ```
 - Use dependency injection — no module-level singletons
 - Error handling: return Result<T, E>, never panic/unwrap in library code
@@ -28,7 +32,9 @@ Project-specific patterns the agent should follow.
 ```
 
 ### 3. Test Rules
+
 How to write tests for this project.
+
 ```
 - Write real tests — exercise actual logic, edge cases, and failure paths
 - Never write test theater — no tests that only prove a function was called
@@ -37,7 +43,9 @@ How to write tests for this project.
 ```
 
 ### 4. Workflow Rules
+
 How the iteration loop works for this specific project.
+
 ```
 - Update PLAN-TODO.md every cycle — check off completed tasks
 - Update SPEC.md when scope or architectural decisions change
@@ -46,7 +54,9 @@ How the iteration loop works for this specific project.
 ```
 
 ### 5. Boundaries
+
 What the agent should and should not do.
+
 ```
 - Do not add new dependencies without updating SPEC.md's dependency table
 - Do not modify justfile recipes without understanding the pipeline graph

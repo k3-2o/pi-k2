@@ -9,10 +9,8 @@
 | Directory/File | Description |
 |----------------|-------------|
 | `ask-user-question.ts` | Ask the user multiple-choice questions |
-| `chrollo/` | Agentic memory — verbatim session capture + g repel retrieval |
 | `clipboard.ts` | Copy text to system clipboard |
 | `pi-move/` | `/move` command to switch directories from inside Pi |
-| `read_image/` | Local OCR for Pi — extracts text from screenshots and code images |
 | `web_search.ts` | Web search, discovery, and extraction |
 
 ### Themes

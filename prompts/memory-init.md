@@ -1,9 +1,9 @@
----
-description: Scaffold a MEMORY.md file at project root for persistent session memory. Use when the project has grown complex enough to benefit from cross-session context.
-argument-hint: "[project-name]"
----
+______________________________________________________________________
+
+## description: Scaffold a MEMORY.md file at project root for persistent session memory. Use when the project has grown complex enough to benefit from cross-session context. argument-hint: "[project-name]"
 
 Create a MEMORY.md file at the project root. Substitute:
+
 - `{{today}}` → the actual date (run `date -I` to get it)
 - `{{project_name}}` → the project name (infer from context, or use "$1" if provided)
 - Fill the Active Workstream bullets with current project state if you can infer it
@@ -71,6 +71,7 @@ _Overwritten each session. Last entry is current._
 ```
 
 After writing the file, confirm to the user that MEMORY.md has been initialized and remind them:
+
 - To update mid-session, say "note that: ..."
 - To update at end of session, say "wrap up and update memory"
 - The file must stay under 300 lines

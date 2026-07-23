@@ -1,8 +1,6 @@
----
-name: skill-creator
-description: "Create, validate, and iterate on Pi skills. Use when the user wants to create a new skill, update an existing skill, validate a skill folder, or package improvements to a skill. Trigger words: skill, SKILL.md, init_skill, quick_validate, scaffold, new skill."
-compatibility: "Scripts in scripts/, run from this directory."
----
+______________________________________________________________________
+
+## name: skill-creator description: "Create, validate, and iterate on Pi skills. Use when the user wants to create a new skill, update an existing skill, validate a skill folder, or package improvements to a skill. Trigger words: skill, SKILL.md, init_skill, quick_validate, scaffold, new skill." compatibility: "Scripts in scripts/, run from this directory."
 
 # Skill Creator
 
@@ -17,9 +15,9 @@ Pi implements the [Agent Skills standard](https://agentskills.io/specification).
 ### What Skills Provide
 
 1. Specialized workflows — Multi-step procedures for specific domains
-2. Tool integrations — Instructions for working with CLI tools or APIs
-3. Domain expertise — Project-specific knowledge, conventions, business logic
-4. Bundled resources — Scripts and reference docs for complex tasks
+1. Tool integrations — Instructions for working with CLI tools or APIs
+1. Domain expertise — Project-specific knowledge, conventions, business logic
+1. Bundled resources — Scripts and reference docs for complex tasks
 
 ### How Pi Loads Skills
 
@@ -73,8 +71,8 @@ Pi explores a path — narrow bridges need guardrails (low freedom), open fields
 Skills use a three-level loading system to manage context efficiently:
 
 1. **Metadata (name + description)** — Always in context (~100 words)
-2. **SKILL.md body** — Loaded when skill triggers (<500 lines recommended)
-3. **Bundled resources** — Loaded as needed by reading references/ or executing scripts/
+1. **SKILL.md body** — Loaded when skill triggers (\<500 lines recommended)
+1. **Bundled resources** — Loaded as needed by reading references/ or executing scripts/
 
 #### Progressive Disclosure Patterns
 
@@ -129,6 +127,7 @@ For simple edits, modify the XML directly.
 ```
 
 **Guidelines:**
+
 - Keep references one level deep from SKILL.md
 - For files >100 lines, include a table of contents at the top
 - Avoid duplication — information lives in SKILL.md OR references/, not both
@@ -204,11 +203,11 @@ The skill should only contain what the agent needs to do the job.
 ## Skill Creation Process
 
 1. Understand the skill with concrete examples
-2. Plan reusable skill contents (scripts, references)
-3. Initialize the skill (run `init_skill.py`)
-4. Edit the skill (implement resources and write SKILL.md)
-5. Validate the skill (run `quick_validate.py`)
-6. Iterate based on usage
+1. Plan reusable skill contents (scripts, references)
+1. Initialize the skill (run `init_skill.py`)
+1. Edit the skill (implement resources and write SKILL.md)
+1. Validate the skill (run `quick_validate.py`)
+1. Iterate based on usage
 
 Follow these steps in order, skipping only when there is a clear reason they don't apply.
 
@@ -239,15 +238,17 @@ Avoid asking too many questions in a single message. Start with the most importa
 For each concrete example, analyze:
 
 1. How would you execute this from scratch?
-2. What scripts, references, and other files would help when repeating these workflows?
+1. What scripts, references, and other files would help when repeating these workflows?
 
 Example: A `pdf-editor` skill for "Help me rotate this PDF":
+
 1. Rotating a PDF requires re-writing the same code each time
-2. A `scripts/rotate_pdf.py` script would be helpful
+1. A `scripts/rotate_pdf.py` script would be helpful
 
 Example: A `frontend-builder` skill for "Build me a todo app":
+
 1. Writing a frontend requires the same boilerplate each time
-2. Template files in the skill directory would be helpful
+1. Template files in the skill directory would be helpful
 
 ### Step 3: Initialize the Skill
 
@@ -276,6 +277,7 @@ python scripts/init_skill.py project-tools --path .pi/skills
 ```
 
 The script:
+
 - Creates the skill directory
 - Generates a SKILL.md template with proper frontmatter and TODO placeholders
 - Optionally creates resource directories
@@ -306,11 +308,13 @@ compatibility: "Environment requirements if any. Max 500 chars."  # optional
 **Description best practices:** The description is the trigger. Be specific:
 
 Good:
+
 ```yaml
 description: Extracts text and tables from PDF files, fills PDF forms, and merges multiple PDFs. Use when working with PDF documents.
 ```
 
 Poor:
+
 ```yaml
 description: Helps with PDFs.
 ```
@@ -324,11 +328,12 @@ Use imperative/infinitive form. Write instructions for using the skill and its b
 Structure options (adapt from these patterns, don't copy them literally):
 
 1. **Workflow-Based** — sequential processes with clear steps
-2. **Task-Based** — different operations or capabilities
-3. **Reference/Guidelines** — standards or specifications
-4. **Capabilities-Based** — interrelated features
+1. **Task-Based** — different operations or capabilities
+1. **Reference/Guidelines** — standards or specifications
+1. **Capabilities-Based** — interrelated features
 
 Use relative paths for everything:
+
 ```markdown
 See [the reference guide](references/REFERENCE.md) for details.
 Run `python scripts/process.py <input>` to transform data.
@@ -341,6 +346,7 @@ python scripts/quick_validate.py <path/to/skill-folder>
 ```
 
 The validation script checks:
+
 - YAML frontmatter format and required fields
 - Name rules (length, character restrictions)
 - Description rules (length, content)
@@ -353,10 +359,10 @@ If validation fails, fix the reported issues and run again.
 After testing, you may detect that the skill needs improvement.
 
 1. Use the skill on real tasks
-2. Notice struggles or inefficiencies
-3. Identify how SKILL.md or bundled resources should be updated
-4. Implement changes and test again
-5. Forward-test by using it yourself on realistic tasks
+1. Notice struggles or inefficiencies
+1. Identify how SKILL.md or bundled resources should be updated
+1. Implement changes and test again
+1. Forward-test by using it yourself on realistic tasks
 
 ## Decision Tree: Choosing Skill Structure
 
