@@ -1,6 +1,8 @@
-______________________________________________________________________
-
-## name: skill-creator description: "Create, validate, and iterate on Pi skills. Use when the user wants to create a new skill, update an existing skill, validate a skill folder, or package improvements to a skill. Trigger words: skill, SKILL.md, init_skill, quick_validate, scaffold, new skill." compatibility: "Scripts in scripts/, run from this directory."
+---
+name: skill-creator
+description: "Create, validate, and iterate on Pi skills. Use when the user wants to create a new skill, update an existing skill, validate a skill folder, or package improvements to a skill. Trigger words: skill, SKILL.md, init_skill, quick_validate, scaffold, new skill."
+compatibility: "Scripts in scripts/, run from this directory."
+---
 
 # Skill Creator
 

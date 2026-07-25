@@ -1,6 +1,8 @@
-______________________________________________________________________
-
-## name: youtube-transcript description: Fetches transcripts/subtitles from YouTube videos and summarizes what the video is about. Use when a user provides a YouTube link (youtube.com, youtu.be) and asks what the video says, what it's about, or for a transcript.
+---
+name: youtube-transcript
+description: "Fetches transcripts/subtitles from YouTube videos and summarizes what the video is about. Use when a user provides a YouTube link (youtube.com, youtu.be) and asks what the video says, what it's about, or for a transcript."
+compatibility: "Requires youtube-transcript-api pip package."
+---
 
 # YouTube Transcript Fetcher + Summarizer
 

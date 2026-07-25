@@ -1,6 +1,8 @@
-______________________________________________________________________
-
-## name: docs-skill description: "Write excellent documentation for any project — READMEs, API references, architecture docs, tutorials, how-to guides, contribution guides, and changelogs. Covers audience-first writing, the Diátaxis framework (tutorials, how-to, reference, explanation), documentation ethics, style principles, and docs-as-code workflows. Trigger words: write docs, documentation, document this, how to document, README, docstring, API docs, changelog, contributing guide, user guide, tutorial, explanation, architecture decision record, ADR, technical writing." compatibility: "Works with any language or framework. No external tools required."
+---
+name: docs-skill
+description: "Write excellent documentation for any project — READMEs, API references, architecture docs, tutorials, how-to guides, contribution guides, and changelogs. Covers audience-first writing, the Diátaxis framework (tutorials, how-to, reference, explanation), documentation ethics, style principles, and docs-as-code workflows. Trigger words: write docs, documentation, document this, how to document, README, docstring, API docs, changelog, contributing guide, user guide, tutorial, explanation, architecture decision record, ADR, technical writing."
+compatibility: "Works with any language or framework. No external tools required."
+---
 
 # Docs Skill — Writing Documentation That Serves
 
@@ -26,8 +28,6 @@ Documentation is an **ethical responsibility** to your users and your future sel
 1. **Be current.** Stale documentation is misleading. Treat docs as first-class citizens alongside code — update them in the same PR.
 1. **Respect your reader's time.** Structure for skimming. Lead with the answer. Don't bury the lede in prose.
 
-______________________________________________________________________
-
 ## Decision Tree: What Kind of Doc to Write
 
 Start here. Match the user's need to the documentation type.
@@ -49,8 +49,6 @@ What is the reader trying to do?
 ```
 
 Each type has a specific purpose, audience, and tone. Never mix types in a single document — it confuses readers and dilutes the value of each.
-
-______________________________________________________________________
 
 ## The Four Documentation Types (Diátaxis Framework)
 
@@ -149,8 +147,6 @@ ______________________________________________________________________
 - [ ] Includes diagrams or visual aids if the concept is complex
 - [ ] Links to related tutorials, how-tos, and reference docs
 - [ ] Does not contain setup instructions or commands to run
-
-______________________________________________________________________
 
 ## Anatomy of Common Documents
 
