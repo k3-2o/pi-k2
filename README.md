@@ -10,7 +10,6 @@
 |----------------|-------------|
 | `ask-user-question.ts` | Ask the user multiple-choice questions |
 | `clipboard.ts` | Copy text to system clipboard |
-| `pi-move/` | `/move` command to switch directories from inside Pi |
 | `web_search.ts` | Web search, discovery, and extraction |
 
 ### Themes
