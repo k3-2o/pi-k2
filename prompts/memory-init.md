@@ -1,6 +1,8 @@
-______________________________________________________________________
-
-## description: Scaffold a MEMORY.md file at project root for persistent session memory. Use when the project has grown complex enough to benefit from cross-session context. argument-hint: "[project-name]"
+---
+description: Scaffold a MEMORY.md file at project root for persistent session memory
+description-extra: Use when the project has grown complex enough to benefit from cross-session context.
+argument-hint: "[project-name]"
+---
 
 Create a MEMORY.md file at the project root. Substitute:
 

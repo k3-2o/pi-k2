@@ -1,6 +1,7 @@
-______________________________________________________________________
-
-## description: Initialize AGENTS.md by asking diagnostic questions first
+---
+description: Initialize AGENTS.md by asking diagnostic questions first
+argument-hint: "[project-name]"
+---
 
 # AGENTS.md Initialization
 
