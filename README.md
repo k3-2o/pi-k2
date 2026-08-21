@@ -33,6 +33,9 @@
 | `scope/` | Codebase orientation — per-file cards showing entry points, exports, imports, cross-file deps, symbols ranked by importance, and structural anomalies. Use with CLI tool [`scope`](https://github.com/k3-2o/scope). |
 | `skill-creator/` | Create, refactor, validate, and package Agent Skills |
 | `youtube-transcript/` | Fetch YouTube video transcripts and summarize |
+| `composio/` | 1000+ app integrations (Gmail, Slack, GitHub, Notion, etc.) via the Composio SDK — search the tool catalog, connect apps, and run actions from right in the workspace. |
+| `session-memory/` | Recall past pi conversations from session history. |
+| `anti-slop/` | Write or polish any text so it reads human and does not trip AI-slop detection, at any layer. |
 
 ### Prompts
 
