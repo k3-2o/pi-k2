@@ -35,6 +35,11 @@ PHASE 1: DISCOVERY (Read-only — no code is modified)
 └── Prioritize findings by severity
       │
       ▼
+PHASE 1.5: HUMAN REVIEW GATE (STOP — no fixes, no advisory, until consent)
+      ├── Explain findings to the user (severity, what, blast radius, confidence)
+      └── Get explicit approval: remediate (Leg 2) / advisory (Leg 3) / stop & wait
+      │
+      ▼
 PHASE 2: REMEDIATION (Gated — each fix verified before the next)
 └── For each finding (priority order):
       ├── Leg 2: Apply fix through 7-phase procedure
@@ -77,6 +82,7 @@ The file uses this structure:
 
 **Baseline**: `abc1234` — tests: 214 passed, 0 failed
 **Status**: remediation in progress (3/12 fixed, 9 remaining)
+**Gate**: awaiting explicit user approval before Leg 2 / Leg 3
 **Orientation**: 14 files inventoried, 23 cross-file connections mapped
 
 ---
@@ -163,6 +169,34 @@ Add the inventory and connection map to `AUDIT-FINDINGS.md` under a `## Phase 0 
 - Prioritize: Critical/Exploitable > Logic bug > Dead code > Code smell > Style.
 - Re-number findings by priority. Update the status block at the top.
 
+### Phase 1.5 — Human Review Gate (Leg 2 and Leg 3 require explicit consent)
+
+The audit does **not** automatically proceed from findings to fixes. After Phase 1's
+prioritization, **STOP**. The point is not to charge into remediation on whatever the
+scan surfaced — the user is the one who owns the repo, the blast radius, and the
+decision of what is worth changing. One gate sits after Leg 1 and guards **both**
+remaining legs: nothing is written and nothing is advised without a clear go-ahead.
+
+**Step A — Report, do not fix.** Put the Phase 1 results in front of the user in plain
+language (in chat; do not dump the whole `AUDIT-FINDINGS.md`):
+- Severity rollup — count of blockers / concerning / minor.
+- One line per finding: `file:line — what it is — why it is a problem`.
+- Your honest confidence per finding: verified (demonstrated) / plausible (strong chain, not shown) / theoretical (vulnerability-in-principle).
+- Which fixes are low-risk and self-contained (dead code, smells, local bugs) versus which change behavior or ripple across files — those get the user's eye first.
+
+**Step B — Get explicit consent, then wait.** Ask a concrete either/or, and do not default to fixing:
+
+> Findings are: N critical, M concerning. Do you want me to remediate (Leg 2)? If not, I can stop here, or run only the advisory (Leg 3) if you want it.
+
+- Explicit **yes** to remediate → enter Phase 2 (Leg 2) and work through findings in
+  priority order.
+- Explicit **no** (or "advisory only") → **touch no code**. Stop, or run only Phase 3
+  advisory on request.
+- No answer or any ambiguity → **stop and wait**. Never begin Leg 2, never run Leg 3,
+  on an assumption.
+
+This is the single human gate for the whole pipeline: reaching either Leg 2 or Leg 3 requires passing here. Leg 3 is non-destructive but still runs only when the user has asked for it.
+
 ### Phase 2 — Remediation (Gated)
 
 **Step 3: Leg 2 — Fix Application**
@@ -220,6 +254,8 @@ If the accounting reveals a gap — a file, finding, thread, or candidate unacco
 | Quick pre-commit review | Phase 0 → Leg 1 only (targeted files) → Completion Accounting |
 | Legacy code cleanup (smells, not bugs) | Phase 0 → Leg 2 only (start with known smells or run Leg 1 on targeted files first) → Completion Accounting |
 | After AI-generated code | Phase 0 → Leg 1 → Leg 2 → Leg 3 (advisory) → Completion Accounting |
+
+Any run that reaches Leg 2 or Leg 3 passes the **Phase 1.5 Human Review Gate** first — no remediation and no advisory without explicit user approval.
 
 ---
 
