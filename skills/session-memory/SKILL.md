@@ -129,20 +129,31 @@ text block is dropped, whatever its shape. No other field knowledge is needed.
    Transcripts stay in the variables for the rest of the search. The files are not
    touched again.
 
-5. **rg the transcripts.** One transcript line = one real turn, so a hit here is a
-   real turn and a miss is a real miss:
+5. **rg the transcripts, cap the hits.** One transcript line = one real turn, so
+   a hit here is a real turn and a miss is a real miss. Cap at 10 hits per
+   session, and drop sessions with none:
 
        from pathlib import Path
        hits = {p: [i for i, ln in enumerate(turns) if needle.lower() in ln.lower()]
                for p, turns in TURNS.items()}
+       hits = {p: idxs[:10] for p, idxs in hits.items() if idxs}
        print({Path(p).name: v for p, v in hits.items()})    # counts only
 
-6. **Read turn by turn.** For the best hit session, walk the hit lines in order:
-   print a ~5-line window (each line capped at ~300 chars), then move forward past
-   what you've seen and print the next window, following the conversation until
-   you have what the user needs. Only then move to the next session's hits. Never
-   dump a whole transcript; never print a raw line, a thinking block can be tens of
-   KB and would permanently eat context.
+6. **Read the hits as turns, never as code.** Transcript lines already carry the
+   turn format `[HH:MM] user: …` / `[HH:MM] assistant: …`; read them that way.
+   Print the best session's hits, rendered as turns, at most 10 lines, each line
+   capped at ~300 chars:
+
+       best = next(iter(hits))
+       for i in hits[best]:
+           ln = TURNS[best][i]
+           print(ln[:300] + (" …" if len(ln) > 300 else ""))
+
+   If those 10 turns do not surface it, expand the window: print ~5 turns of
+   context before and after each hit, same turn format, same cap. Only when that
+   still misses do you fetch more sessions (step 7). Never print raw file lines
+   and never scan a whole session's hits in one printout; a thinking block can be
+   tens of KB and would permanently eat context.
 
 7. **Not found? Loop back.** Take the next tier of hit sessions from step 2 (or
    relax the `-m` cap (200), or drop in a variant term), convert them into transcripts,
