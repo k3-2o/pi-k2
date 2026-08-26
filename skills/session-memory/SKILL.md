@@ -12,12 +12,32 @@ Find a past conversation in `~/.pi/agent/sessions/` and read back the relevant t
 Sessions are JSONL (one JSON object per line) under
 `~/.pi/agent/sessions/<cwd-slug>/<date>_<id>.jsonl` (slug = cwd with `/` → `-`).
 
+Every line is a node in one tree, linked by `id` → `parentId`: a left-deep spine
+where each new turn hangs off the latest leaf. Two roots: `session` (the header,
+always the first line) and `model_change`. The first user turn hangs off the
+model_change / thinking_level_change chain, not off session.
+
+    session {cwd}
+    model_change {provider, modelId}
+    └─ thinking_level_change {thinkingLevel}
+       └─ message[user] {text}
+          └─ message[assistant] {thinking, text, toolCall…}
+             └─ message[toolResult]              ← output of the call
+                └─ message[assistant] {toolCall}
+                   └─ message[toolResult]        ← tool loops nest deeper
+                      └─ …
+                         └─ message[assistant] {thinking, text}
+                            └─ message[user] {text}   ← next turn
+
+Three rarer types attach anywhere on the spine: `session_info` {name},
+`compaction` {summary}, and `custom_message` {content: plain string}.
+
 Most lines are not conversation: toolResult messages and thinking blocks dominate
 the files, so a raw `rg` hit usually lands inside that noise, not in something the
 user actually said.
 
 Search the transcript instead: the same file reduced to conversation. Build it by
-filtering every line — keep only `type == "message"` lines whose role is `user`
+filtering every line: keep only `type == "message"` lines whose role is `user`
 or `assistant`, keep only the `text` blocks inside each turn, drop everything else
 (tool output, thinking, images, headers, model-change metadata). One turn becomes
 one line.
