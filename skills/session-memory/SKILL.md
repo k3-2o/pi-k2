@@ -61,7 +61,7 @@ Every field shape for every line type is in
    matches many of them at once.
 
    **Keyword gate: no search on a thin prompt.** If the ask yields fewer than
-   three distinctive keywords, stop. Tell the user plainly: this prompt does not
+   seven distinctive keywords, stop. Tell the user plainly: this prompt does not
    have enough keywords to work with; add an exact phrase you recall, a filename,
    a tool name, or a date. A corpus-wide rg on one or two generic words burns an
    expensive search that returns nothing, and that would be the user's fault, not
