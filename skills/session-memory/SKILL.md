@@ -48,8 +48,8 @@ Two traps in that filter:
 - an assistant turn's `content` is `[{type:"thinking",…}, {type:"text",…}]`;
   keep the `text` block, drop the thinking
 
-Every field shape for every line type is in
-[references/session-format.md](references/session-format.md).
+The filter is closed: anything that is not a user/assistant message with a
+text block is dropped, whatever its shape. No other field knowledge is needed.
 
 ## Procedure
 
