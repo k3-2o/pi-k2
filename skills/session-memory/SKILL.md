@@ -132,7 +132,7 @@ Every field shape for every line type is in
    real turn and a miss is a real miss:
 
        from pathlib import Path
-       hits = {p: [i for i, ln in enumerate(turns) if needle in ln.lower()]
+       hits = {p: [i for i, ln in enumerate(turns) if needle.lower() in ln.lower()]
                for p, turns in TURNS.items()}
        print({Path(p).name: v for p, v in hits.items()})    # counts only
 
