@@ -12,7 +12,6 @@
 | `clipboard.ts` | Copy text to system clipboard |
 | `web_search.ts` | Web search, discovery, and extraction |
 | `bench-turns.ts` | Bench tool turns |
-| `pi-vim/` | Modal vim editing for pi's prompt box — two modes, operators + text objects, find/till, buffer jumps |
 | `read_image/` | OCR tool — extracts text from images via native C Tesseract (fallback for models without vision) |
 
 ### Themes
