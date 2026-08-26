@@ -105,7 +105,8 @@ Every field shape for every line type is in
 
 3. **Confirm before converting.** A hit session might still be the wrong session.
    `session_info.name` (human title) and `compaction.summary` (recap of the
-   compacted part) settle it without touching the spine.
+   compacted part) settle it without touching the spine. Only the summary
+   survives; the compacted span itself is not searchable.
 
 4. **Convert each hit session into its own transcript**, one variable per session,
    one real turn per line:
@@ -149,17 +150,11 @@ Every field shape for every line type is in
    loop stops turning up new material, the terms do not match history: say so and
    ask for a more distinctive term.
 
-## Failure discipline
+## Reporting rules
 
-- No clean hits → "nothing in the session history matches", not "no memories".
-- rg error or timeout → say the search failed and retry; a failure is not a "none".
-- Thin prompt → you flagged it (step 1 gate) and asked for more keywords. If none
-  come, do not launch the corpus-wide search; state plainly that recall needs
-  keyword density and the prompt does not have it.
-- Terms matching everything → narrow or ask. Search less, don't print more.
+- Nothing matched → "nothing in the session history matches", not "no memories".
+- Search error or timeout → say it failed and retry; a failure is not a "none".
+- Gate (step 1) or over-broad terms → ask for better keywords, don't search without them.
+- Terms cannot pin one session → say so and ask. Never guess.
 
-## Limits
-
-Keyword recall over cleaned text. Compaction summaries are searchable; the compacted
-span itself is not. If the terms cannot pin one session, say so and ask for a more
-distinctive one. Do not guess.
+Recall is keyword-over-clean-text; nothing fuzzy.
