@@ -53,10 +53,19 @@ Every field shape for every line type is in
 
 ## Procedure
 
-1. **Pick 2–4 rare terms** from the ask: names, paths, identifiers, exact phrases.
-   Split camelCase (`k3sIngress` → `k3s ingress`), lowercase, drop stopwords and
-   ≤2-char fragments. If the ask yields no distinctive term, ask the user for one or
-   two. Never run a search on filler.
+1. **Mine every distinctive keyword from the ask.** Identifiers, file paths,
+   tool names, version strings, exact phrases, project names, dates. A quoted
+   phrase is one term (`-F` keeps it literal). Split camelCase (`k3sIngress` →
+   `k3s ingress`), lowercase, drop stopwords and ≤2-char fragments. There is no
+   upper cap: the more keywords, the sharper the hits, because the right session
+   matches many of them at once.
+
+   **Keyword gate: no search on a thin prompt.** If the ask yields fewer than
+   three distinctive keywords, stop. Tell the user plainly: this prompt does not
+   have enough keywords to work with; add an exact phrase you recall, a filename,
+   a tool name, or a date. A corpus-wide rg on one or two generic words burns an
+   expensive search that returns nothing, and that would be the user's fault, not
+   the search's. No keywords, no search.
 
 2. **rg the corpus, noise-filtered, newest file first.** One rg over
    `~/.pi/agent/sessions` with line numbers on and `--sortr modified` (rg walks
@@ -143,7 +152,10 @@ Every field shape for every line type is in
 
 - No clean hits → "nothing in the session history matches", not "no memories".
 - rg error or timeout → say the search failed and retry; a failure is not a "none".
-- Terms that match everything → narrow them or ask. Search less, don't print more.
+- Thin prompt → you flagged it (step 1 gate) and asked for more keywords. If none
+  come, do not launch the corpus-wide search; state plainly that recall needs
+  keyword density and the prompt does not have it.
+- Terms matching everything → narrow or ask. Search less, don't print more.
 
 ## Limits
 
