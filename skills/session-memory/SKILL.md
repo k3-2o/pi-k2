@@ -58,13 +58,16 @@ Every field shape for every line type is in
    ≤2-char fragments. If the ask yields no distinctive term, ask the user for one or
    two. Never run a search on filler.
 
-2. **rg the corpus, noise-filtered.** One rg over `~/.pi/agent/sessions` with line
-   numbers on. Parse only the MATCHING lines through the turn filter from above;
-   a match that fails it is muck (thinking, tool output, headers) and dies on the
-   spot. Every match that survives is a real user/assistant turn. Group the
-   survivors by file: those files are the hit sessions, most hits first. Drop the
-   file of the session you are in right now; it contains the ask by definition and
-   is already in your context.
+2. **rg the corpus, noise-filtered, newest file first.** One rg over
+   `~/.pi/agent/sessions` with line numbers on and `--sortr modified` (rg walks
+   files newest first; `-F` makes the terms literal). Parse only the MATCHING
+   lines through the turn filter from above; a match that fails it is muck
+   (thinking, tool output, headers) and dies on the spot. Every match that
+   survives is a real user/assistant turn. Group the survivors by file, keeping
+   rg's date order: those files are the hit sessions, newest session on top. What
+   you are after is often not the newest hit; work down the list. Drop the file of
+   the session you are in right now; it contains the ask by definition and is
+   already in your context.
 
        import json, os, subprocess
        from collections import defaultdict
@@ -78,7 +81,8 @@ Every field shape for every line type is in
            return any(isinstance(b, dict) and b.get("type") == "text" and b.get("text", "").strip()
                       for b in m.get("content", []))
 
-       r = subprocess.run(["rg", "-i", "-n", "-g", "*.jsonl", "-m", "300"]
+       r = subprocess.run(["rg", "-n", "-i", "-F", "--sortr", "modified",
+                           "-g", "*.jsonl", "-m", "200"]
                           + [f"-e{t}" for t in terms]
                           + [os.path.expanduser("~/.pi/agent/sessions")],
                           capture_output=True, text=True)
@@ -87,8 +91,7 @@ Every field shape for every line type is in
            path, _, rest = mline.partition(":")
            ln, _, raw = rest.partition(":")
            if is_real_turn(raw):
-               hit_sessions[path].append(int(ln))
-       hit_sessions = dict(sorted(hit_sessions.items(), key=lambda kv: -len(kv[1])))
+               hit_sessions[path].append(int(ln))   # order = newest session first
 
 3. **Confirm before converting.** A hit session might still be the wrong session.
    `session_info.name` (human title) and `compaction.summary` (recap of the
@@ -131,7 +134,7 @@ Every field shape for every line type is in
    KB and would permanently eat context.
 
 7. **Not found? Loop back.** Take the next tier of hit sessions from step 2 (or
-   relax the `-m` cap, or drop in a variant term), convert them into transcripts,
+   relax the `-m` cap (200), or drop in a variant term), convert them into transcripts,
    and search again by the same steps. Two or three passes is normal. When the
    loop stops turning up new material, the terms do not match history: say so and
    ask for a more distinctive term.
