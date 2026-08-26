@@ -12,9 +12,8 @@ Find a past conversation in `~/.pi/agent/sessions/` and read back the relevant t
 Sessions are JSONL (one JSON object per line) under
 `~/.pi/agent/sessions/<cwd-slug>/<date>_<id>.jsonl` (slug = cwd with `/` → `-`).
 
-Most lines are not conversation: on this machine ~33k of ~77k message lines are
-toolResult and ~26k content blocks are thinking. A raw `rg` hit usually lands inside
-that noise. The only text worth searching is the cleaned transcript: user/assistant
+Most lines are not conversation: toolResult messages and thinking blocks dominate
+the files. A raw `rg` hit usually lands inside that noise. The only text worth searching is the cleaned transcript: user/assistant
 turns only, one per line. Everything else (tool output, thinking, images, headers,
 model-change metadata) is dropped at parse time.
 
