@@ -56,12 +56,13 @@ Every field shape for every line type is in
 1. **Mine every distinctive keyword from the ask.** Identifiers, file paths,
    tool names, version strings, exact phrases, project names, dates. A quoted
    phrase is one term (`-F` keeps it literal). Split camelCase (`k3sIngress` →
-   `k3s ingress`), lowercase, drop stopwords and ≤2-char fragments. There is no
-   upper cap: the more keywords, the sharper the hits, because the right session
+   `k3s ingress`), lowercase, drop filler words (is, or, the, with, and, a, an,
+   to, of, for, on, it, we, you, that, this) and ≤2-char fragments: they add no
+   uniqueness and only widen the net. There is no upper cap: the more keywords, the sharper the hits, because the right session
    matches many of them at once.
 
    **Keyword gate: no search on a thin prompt.** If the ask yields fewer than
-   seven distinctive keywords, stop. Tell the user plainly: this prompt does not
+   five distinctive keywords, stop. Tell the user plainly: this prompt does not
    have enough keywords to work with; add an exact phrase you recall, a filename,
    a tool name, or a date. A corpus-wide rg on one or two generic words burns an
    expensive search that returns nothing, and that would be the user's fault, not
