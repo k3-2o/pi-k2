@@ -11,6 +11,9 @@ Find a past conversation in `~/.pi/agent/sessions/` and read back the relevant t
 
 Sessions are JSONL (one JSON object per line) under
 `~/.pi/agent/sessions/<cwd-slug>/<date>_<id>.jsonl` (slug = cwd with `/` → `-`).
+A filename alone is never a path: every file sits inside its cwd-slug
+subdirectory, and every path in this skill comes from rg output or the
+transcripts dict, never rebuilt by hand.
 
 Every line is a node in one tree, linked by `id` → `parentId`: a left-deep spine
 where each new turn hangs off the latest leaf. Two roots: `session` (the header,
@@ -138,6 +141,9 @@ text block is dropped, whatever its shape. No other field knowledge is needed.
                for p, turns in TURNS.items()}
        hits = {p: idxs[:10] for p, idxs in hits.items() if idxs}
        print({Path(p).name: v for p, v in hits.items()})    # counts only
+
+The dict keys are the full paths; the print shows basenames only.
+Never rebuild a path from a basename.
 
 6. **Read the hits as turns, never as code.** Transcript lines already carry the
    turn format `[HH:MM] user: …` / `[HH:MM] assistant: …`; read them that way.
