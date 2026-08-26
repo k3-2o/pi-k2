@@ -13,15 +13,20 @@ Sessions are JSONL (one JSON object per line) under
 `~/.pi/agent/sessions/<cwd-slug>/<date>_<id>.jsonl` (slug = cwd with `/` → `-`).
 
 Most lines are not conversation: toolResult messages and thinking blocks dominate
-the files. A raw `rg` hit usually lands inside that noise. The only text worth searching is the cleaned transcript: user/assistant
-turns only, one per line. Everything else (tool output, thinking, images, headers,
-model-change metadata) is dropped at parse time.
+the files, so a raw `rg` hit usually lands inside that noise, not in something the
+user actually said.
 
-Two traps when parsing:
+Search the transcript instead: the same file reduced to conversation. Build it by
+filtering every line — keep only `type == "message"` lines whose role is `user`
+or `assistant`, keep only the `text` blocks inside each turn, drop everything else
+(tool output, thinking, images, headers, model-change metadata). One turn becomes
+one line.
+
+Two traps in that filter:
 
 - the role is NESTED: `line["message"]["role"]`; the outer line has none
-- assistant turns are `content: [{type:"thinking",…}, {type:"text",…}]`. Keep only
-  `type == "text"` blocks
+- an assistant turn's `content` is `[{type:"thinking",…}, {type:"text",…}]`;
+  keep the `text` block, drop the thinking
 
 Every field shape for every line type is in
 [references/session-format.md](references/session-format.md).
