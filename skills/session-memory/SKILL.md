@@ -21,10 +21,10 @@ spans are gone — only summaries survive.
 
 - **A filename is never a path.** Paths come only from rg output or
   transcripts, never rebuilt by hand — the slug subdir is part of the path.
-- **Recurse.** Sessions nest under per-workspace slug dirs; scans must use
+- **Recurse.** Sessions nest under workspace slug dirs; scans must use
   `rglob`. Plain `glob` silently finds nothing (verify count ≠ 0).
 - **`rg -e a -e b` is line-OR, not AND.** Hence the sketch runs one pass
-  per term: co-occurrence is a set intersection, proximity a line-span.
+  per term: co-occurrence is a set intersection, proximity a line span.
 - **The session you are in echoes your query.** The search itself must
   exclude it (rg `-g !` + parse-time skip) — it never shows up, ever.
 - **Rank both roles.** The topic often lives in the assistant answer.
@@ -38,13 +38,13 @@ spans are gone — only summaries survive.
 2. **rg → keep real turns → rank → cap → peek.** One `rg -F` pass per term;
    keep only lines whose message role is user/assistant with non-empty text.
    Sessions holding ALL terms outrank partials; among full matches, the
-   tighter the terms are packed (min line-span) the better, then volume,
+   tighter the terms are packed (min line span) the better, then volume,
    then recency. Cap ~10 sessions. Print the top hits WITH their matched
    lines — never rank blind.
 3. **Confirm** with `session_info.name` / `compaction.summary`.
 4. **Read as turns** `[HH:MM] role: text`, ~300 chars each. Widen one window
    at a time (≤5 lines before/after). Never dump raw lines or a whole session.
-5. **Miss → loop back:** next tier of ranked sessions, relax the per-file cap,
+5. **Miss → loop back:** next tier of ranked sessions, relax the cap per file,
    try variant terms (2-3 passes is normal). Triage/eviction sessions name
    what they deleted — search them for the topic. Dead end → ask for better
    terms, never guess.
@@ -76,7 +76,7 @@ One way this can look:
         return any(b.get("type") == "text" and b.get("text", "").strip()
                    for b in m.get("content", []) if isinstance(b, dict))
 
-    # ---- search: one rg pass per term — co-occurrence needs per-term positions
+    # ---- search: one rg pass per term — co-occurrence needs positions per term
     occ = defaultdict(lambda: defaultdict(set))   # path -> term -> {turn lines}
     raws = defaultdict(dict)                      # path -> line no -> raw jsonl
     for term in TERMS:
@@ -91,7 +91,7 @@ One way this can look:
                 occ[path][term].add(int(ln))
                 raws[path][int(ln)] = raw
 
-    # ---- rank: all-terms sessions first, then tighter proximity, then recency
+    # ---- rank: sessions holding every term first, then tighter proximity, then recency
     def min_span(term_lines):                # tightest window holding every term
         if set(term_lines) != set(TERMS):
             return None                      # partial match: never outranks
