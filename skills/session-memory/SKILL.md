@@ -1,6 +1,6 @@
 ---
 name: session-memory
-description: Search past pi session logs when the user references earlier work, prior decisions, or a previous session and current context can't answer it. Don't load for general questions, only when history genuinely matters.
+description: Recall and remember past pi conversations. Search session logs when the user references earlier work, prior decisions, or a previous session and current context can't answer it. Don't load for general questions, only when history genuinely matters.
 ---
 
 # Session Memory
