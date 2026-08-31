@@ -34,8 +34,8 @@ spans are gone — only summaries survive.
 
 1. **Mine keywords from the event, not the noun.** Identifiers, paths, tool
    names, versions, dates; split camelCase; drop fillers and ≤2-char tokens.
-   User says `codex`, the file says `cursor` — split the claim into
-   actor/verb/object and mine each. <5 solid terms → stop and ask.
+   Mine the actor/verb/object of the claim separately — each may have its
+   own term. <5 solid terms → stop and ask.
 2. **rg → keep real turns → rank → cap → peek.** `rg -F` across the sessions
    dir; keep only lines whose message role is user/assistant with non-empty
    text; rank by hits per session with recency as tiebreak; cap ~10 sessions
