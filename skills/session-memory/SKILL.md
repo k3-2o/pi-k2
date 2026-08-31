@@ -40,8 +40,7 @@ spans are gone — only summaries survive.
    Sessions holding ALL terms outrank partials; among full matches, the
    tighter the terms are packed (min line-span) the better, then volume,
    then recency. Cap ~10 sessions. Print the top hits WITH their matched
-   lines — never rank blind. The sketch below is illustrative — adapt it,
-   don't replicate it line-for-line.
+   lines — never rank blind.
 3. **Confirm** with `session_info.name` / `compaction.summary`.
 4. **Read as turns** `[HH:MM] role: text`, ~300 chars each. Widen one window
    at a time (≤5 lines before/after). Never dump raw lines or a whole session.
@@ -56,11 +55,7 @@ No match → "nothing in history matches"; failed → "retry". On a hit, quote
 the matched user turn(s) verbatim — the user recognizes their own words
 instantly, and the hunt is over.
 
-## Illustrative example
-
-An example of the mechanics, not a spec to reproduce verbatim. Adapt it to
-your environment — a notebook, a bash script, a repl, one go or in stages;
-whatever fits. The comments mark the stages.
+## Example
 
     import json, subprocess
     from collections import defaultdict
