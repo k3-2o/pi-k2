@@ -1,128 +1,120 @@
 ---
 name: composio
-description: "Use the composio Python SDK directly from the repl workspace to reach 1000+ app integrations (Gmail, Slack, GitHub, Notion, etc.). Search the tool catalog, check which apps are connected, execute app actions, and authorize new apps via OAuth. Use when a task needs a real app action (send email, post to Slack, create a doc, query GitHub) and the composed helper is not available. Trigger: composio, app integration, connect an app, send/execute a tool, Gmail/Slack/GitHub action."
-compatibility: "Requires the composio SDK in the repl venv (composio 0.x) and apiKey+userId in ~/.config/pi-composio/config.json. Uses the raw SDK only — no helper object."
+description: "Use the composio Python SDK directly from the repl workspace to reach 1000+ app integrations (Gmail, Slack, GitHub, Google Drive, Notion, etc.). Search the tool catalog, fetch full schemas, execute app actions, upload files via the S3 presign dance, and authorize new apps via OAuth. Use when a task needs a real app action (send email, post to Slack, create a doc, query GitHub, push to Drive)"
+compatibility: "Requires the composio SDK in the repl venv (~/.pi/agent/pi-repl/venv) and apiKey+userId in ~/.config/pi-composio/config.json."
 ---
 
 # Composio
 
-Drive any of composio's 1,000+ app integrations through one Python SDK. The whole shape is
-`Composio(api_key)` -> `sessions.create(user_id)` -> a session with `search` / `execute` / `authorize`.
+One SDK, 1000+ app integrations. 4 stages, fixed order; only query/slug/args vary.
 
-## Bootstrap (first use in a session)
+## Decoder
+
+Always read [references/field-map.md](references/field-map.md) FIRST, before any stage: it is the
+measured spec this skill runs on. Response shapes, raw vs core sizes, the fields worth
+keeping. Responses run lean by default; the shapes above keep them that way.
+
+## Rails
+
+    1. Bootstrap -> session `s`
+    2. Search    -> slug + connection
+    3. Schema    -> real arg names (when input_schema None)
+    4. Execute   -> run, trim
+
+## 1. Bootstrap
 
 ```python
 import json, os
 from composio import Composio
 
 cfg = json.load(open(os.path.expanduser("~/.config/pi-composio/config.json")))
-c = Composio(api_key=cfg["apiKey"])
-s = c.sessions.create(user_id=cfg["userId"])     # a real session; keep `s` in scope
+c = Composio(api_key=cfg["apiKey"])              # client: auth only, NO actions
+s = c.sessions.create(user_id=cfg["userId"])     # NEW session each time: cheap handle;
+                                                 # connections live on the user, never lost
 ```
 
-`apiKey` and `userId` live in `~/.config/pi-composio/config.json`. The `ak_...` value is the
-API key; the long `pg-test-...` string is the user id. There is **no per-app client id** — reuse
-`apiKey` + `userId` for every app. Keep the session around for many calls; use
-`session_id` + `sessions.use(...)` to reopen it later.
+Never print `apiKey`. Wrong `userId` = sessions that see zero connections.
 
-**NEVER print, echo, or paste the api key value.** Api keys and secrets are excluded from
-"just reading the file." If you must inspect the config, redact the secret first:
+## 2. Search
 
 ```python
-cfg = json.load(open(os.path.expanduser("~/.config/pi-composio/config.json")))
-print({k: (v if not any(s in k.lower() for s in ("key", "token", "secret"))
-          else f"{v[:6]}...{v[-4:]} ({len(v)} chars)") for k, v in cfg.items()})
+res = s.search(query="upload file to google drive")   # query is the blank
+d = res.tool_schemas        # {slug: ToolSchemas model}; models, never .get()
+for slug, obj in d.items():
+    print(slug, "| full:", obj.has_full_schema, "|", (obj.description or "")[:70])
+print({t.toolkit.upper(): t.has_active_connection for t in res.toolkit_connection_statuses})
 ```
 
-Result looks like `ak_SaB...yYR4 (23 chars)` — enough to confirm it's set, never the value
-itself. Pass values to `Composio(api_key=cfg["apiKey"])` by reference; never print them.
+`input_schema` often None: search returns summaries, not a bug. Not connected -> `s.authorize`.
 
-## The flow: find -> check -> run
-
-Every app action follows this order. Do NOT skip the connection check.
+## 3. Schema
 
 ```python
-# 1. Find the tool
-res = s.search(query="send gmail email")
-#    tool_schemas -> {slug: {toolkit, description}}
-#    toolkit_connection_statuses -> which apps are connected
-
-# 2. Check connection BEFORE running
-conns = {t.toolkit.upper(): t.has_active_connection for t in res.toolkit_connection_statuses}
-if not conns.get("GMAIL", False):
-    req = s.authorize("gmail")              # 3. connect first
-    # GIVE THE USER req.redirect_url to open + log in, then wait, then retry
-    ...
-
-# 4. Run it
-resp = s.execute("GMAIL_SEND_EMAIL", arguments={
-    "to": "...", "subject": "...", "body": "...",
-})
-data = resp.data      # error is None on success
+if obj.input_schema is None:
+    meta = s.execute("COMPOSIO_GET_TOOL_SCHEMAS",
+                     arguments={"tool_slugs": ["GOOGLEDRIVE_CREATE_FOLDER"]})
+    schema = meta.model_dump()["data"]["tool_schemas"]["GOOGLEDRIVE_CREATE_FOLDER"]["input_schema"]
 ```
 
-- **Result is a pydantic model**, not a dict. Read fields off it; use `.model_dump()` only when
-  you need a plain dict.
+Any slug, any toolkit; Drive is the worked example. Never guess args; schema first.
 
-- **NEVER let a raw response reach context.** A `search`/`execute` model_dump is 15-18KB of
-  fluff you don't need. ALWAYS route it through a variable first:
-
-  ```python
-  res  = s.search(...)          # raw model -> variable
-  lean = trim_search(res)       # CUT the fluff -> variable (11x smaller)
-  print(lean)                   # ONLY the trimmed var ever reaches context
-  ```
-
-  Same for execute: `data = trim_execute(resp)["data"]` — never print `resp.model_dump()`.
-
-- **The tools are always auto-picked:** default sessions have one connected account per app
-  per user and execute against it automatically. No account selection needed.
-- **THE DATA PAYLOAD IS the app's field schema — trim it, don't invent it.** The envelope
-  (`search`/`schema`/`execute`) is already trimmed above, but `resp.data` itself is per-app and
-  is frequently ~40KB of garbage. Always recognize the payload's real fields via
-  `schema(tool)` or by inspecting ONE message's keys — then pull ONLY the small useful fields
-  and leave the body/HTML fields untouched.
-
-  **Email (GMAIL_FETCH_EMAILS): keep `sender`/`subject`/`messageTimestamp`/`messageId`/
-  `threadId`/`display_url`/`preview`/`to`. CRITICAL — DROP `messageText` and `payload`:**
-  those are raw HTML bodies (measured **26KB and 40KB each**). Use `preview`, not `messageText`.
-  Example:
-
-  ```python
-  resp = s.execute("GMAIL_FETCH_EMAILS", arguments={"limit":3,
-                  "message_type":"UNREAD", "exclude_body":True})
-msgs = resp.data["messages"]
-lean = [{k: m[k] for k in ("sender","subject","messageTimestamp","messageId",
-                           "display_url","preview")} for m in msgs]
-print(lean)                    # small struct; 40KB HTML never entered context
-  ```
-
-## Authorizing a new app
-
-An app that isn't connected has NO connection on the user. When you get composio's
-deterministic `BadRequestError` whose message contains
-`"No active connection found for toolkit(s) 'X'"`, that is NOT a real failure — the app is
-simply not connected. Handle it:
+## 4. Execute
 
 ```python
-req = s.authorize("slack")   # toolkit slug, e.g. "slack"
-print(req.redirect_url)      # give this URL to the user to open + log in
-# user authorizes, then you can execute slack tools
+resp = s.execute("SLUG_HERE", arguments={...from schema...})
+data = resp.data        # assign first; payload fields are per app, slice before print
+print(keep_only_the_useful_fields)
 ```
 
-`authorize()` returns `{id: "ca_...", status: "INITIATED", redirect_url}` — the user must open
-the `redirect_url` in a browser. Ask the user to do so, confirm, then retry the action.
+Inspect one item's keys, keep the small useful ones. Gmail: drop `messageText`/`payload`
+(HTML, 26/40KB), keep `preview`.
 
-## Response bloat — READ THE MAP
+## Uploads: presign dance
 
-> **IMPORTANT — [references/field-map.md](references/field-map.md) is the response-decoder.**
-> It has the exact field paths and the deterministic trims for every response (measured, not guessed).
->
-> **Read it when a `search` / `schema` / `execute` result comes back too large.** Raw `data` alone
-> can exceed 17KB. The map tells you exactly what to keep and what to drop.
+No local paths; file args take `{name, mimetype, s3key}`. Blanks: `tool_slug` +
+`toolkit_slug`, file arg name, destination arg (the schema has them).
 
-## Use the raw SDK, not a wrapper
+```python
+import hashlib, pathlib, httpx
+from composio_client import Composio as RawClient
 
-Import `from composio import Composio` directly. Do NOT hand-roll a wrapper class around the
-SDK — call the SDK's objects (`.sessions.create`, `.search`, `.execute`, `.authorize`) exactly
-as shown. Point to install venv: `~/.pi/agent/pi-repl/venv`.
+raw = RawClient(api_key=cfg["apiKey"])
+data = pathlib.Path("/local/file.md").read_bytes()
+pu = raw.files.create_presigned_url(
+        filename="file.md", md5=hashlib.md5(data).hexdigest(), mimetype="text/markdown",
+        tool_slug="GOOGLEDRIVE_UPLOAD_FILE", toolkit_slug="googledrive")
+httpx.put(pu.new_presigned_url, content=data, timeout=60).raise_for_status()
+resp = s.execute("GOOGLEDRIVE_UPLOAD_FILE", arguments={
+        "file_to_upload": {"name": "file.md", "mimetype": "text/markdown", "s3key": pu.key},
+        "folder_to_upload_to": FOLDER_ID})
+print(resp.data)
+```
+
+## Authorize
+
+`"No active connection found for toolkit(s) 'X'"` = not connected, not a failure.
+
+```python
+req = s.authorize("slack")
+print(req.redirect_url)     # user opens, confirms, retry
+```
+
+## Errors
+
+| Error | Fix |
+|---|---|
+| `'ToolSchemas' object has no attribute 'get'` | pydantic models: attribute access, `.model_dump()` |
+| `'ToolSchemasSchemaRef' object has no attribute 'get'` | `.schema_ref.args` |
+| `input_schema` None | stage 3 meta tool |
+| `No active connection found for 'X'` | `s.authorize("x")` |
+| sessions see no connections | wrong `userId` in config |
+| upload wants `s3key` | presign dance |
+| 401 / dead session | recheck `config.json`, redacted |
+
+Report real errors; never fake success, never blind retry.
+
+## Clients
+
+`composio.Composio`: sessions/search/execute/authorize, no `.files`.
+`composio_client.Composio`: raw REST, `.files.create_presigned_url` (presign only).
+No wrapper class. Venv: `~/.pi/agent/pi-repl/venv`.
