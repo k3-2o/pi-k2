@@ -15,7 +15,7 @@ Software is used by people. Documentation is the bridge between the code and its
 
 ## Core Principles
 
-### 1. Honesty — Don't Misrepresent
+### 1. Honesty, Don't Misrepresent
 
 - Document what exists, not what you wish existed
 - Mark experimental features clearly ("This API is in beta and may change")
@@ -23,7 +23,7 @@ Software is used by people. Documentation is the bridge between the code and its
 - Never document unreleased features as though they are available
 - Wrong documentation is worse than missing documentation
 
-### 2. Inclusivity — Write for Everyone
+### 2. Inclusivity, Write for Everyone
 
 - Use plain language accessible to non-native speakers
 - Avoid idioms, cultural references, and inside jokes
@@ -33,7 +33,7 @@ Software is used by people. Documentation is the bridge between the code and its
 - Use color-blind safe palettes for any visual elements
 - Consider that your reader may be using a screen reader, translation tool, or limited bandwidth
 
-### 3. Accountability — Own Your Changes
+### 3. Accountability, Own Your Changes
 
 - Every deprecation must include a migration path
 - Breaking changes must be documented at the time of the change, with rationale
@@ -41,7 +41,7 @@ Software is used by people. Documentation is the bridge between the code and its
 - If you make a documentation error, fix it promptly and transparently
 - Sign your work (git blame should identify who wrote each line)
 
-### 4. Currency — Stale Docs Are Harmful
+### 4. Currency, Stale Docs Are Harmful
 
 - Treat outdated documentation as a bug, not tech debt
 - Never merge code without updating its associated documentation
@@ -49,11 +49,11 @@ Software is used by people. Documentation is the bridge between the code and its
 - Version your documentation alongside your code (same tag, same branch)
 - Run automated link checking and stale-content detection
 
-### 5. Respect — Honor the Reader's Context
+### 5. Respect, Honor the Reader's Context
 
 - Do not pad documentation with fluff, marketing, or self-congratulation
 - Assume the reader is intelligent but uninformed about your specific project
-- Never use "simply", "just", "obviously", or "trivially" — they shame the reader
+- Never use "simply", "just", "obviously", or "trivially", they shame the reader
 - Lead with the answer. A reader who already knows the context should be able to leave immediately.
 - Provide multiple paths to the same information (search, table of contents, cross-references)
 

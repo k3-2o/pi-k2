@@ -35,11 +35,11 @@
 
 ### Avoid These
 
-- **Simply, just, easily** — They invalidate the reader's experience when something is hard.
-- **Obviously, clearly, of course** — If it were obvious, the reader wouldn't need docs.
-- **Note that, it's worth noting that** — Just state the fact. Don't preface it.
-- **Basically, essentially** — They hedge. Be direct.
-- **Please** — In commands, it's noise. "Please run the following" → "Run the following".
+- **Simply, just, easily**: They invalidate the reader's experience when something is hard.
+- **Obviously, clearly, of course**: If it were obvious, the reader wouldn't need docs.
+- **Note that, it's worth noting that**: Just state the fact. Don't preface it.
+- **Basically, essentially**: They hedge. Be direct.
+- **Please**: In commands, it's noise. "Please run the following" → "Run the following".
 
 ## Formatting Conventions
 
@@ -117,5 +117,13 @@ If your documentation will be machine-translated:
 - Avoid idioms and humor
 - Use consistent terminology (don't use "start" in one place and "begin" in another)
 - Write out acronyms on first use
-- Use articles ("the", "a") consistently — they help translation engines parse structure
+- Use articles ("the", "a") consistently, they help translation engines parse structure
 - Avoid phrasal verbs ("set up", "tear down") where a single verb works ("configure", "destroy")
+
+## Structure
+
+- Inverted pyramid: title says what the page is, first paragraph says what the reader gets, body in order of importance
+- One idea per paragraph
+- Descriptive headings ("How authentication works", never "Overview")
+- Numbered lists for sequential steps, bullets for non-sequential items
+- Realistic example values (`user@example.com`, not `foo@bar`); example code runs; show output alongside

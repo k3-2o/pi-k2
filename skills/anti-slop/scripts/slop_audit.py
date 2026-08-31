@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""slop_audit.py — deterministic Layer 1 + Layer 2 slop scorer.
+"""slop_audit.py: deterministic Layer 1 + Layer 2 slop scorer.
 
 Reads a file path or stdin (use '-' for stdin) and reports surface + structural
 tells that correlate with AI-generated text. Pure stdlib, no dependencies.
 
 Scope: Layer 1 (lexical / punctuation) and part of Layer 2 (burstiness, templatedness).
 Layer 3 (argument dependency, narrative scatter, domain substance) CANNOT be scored
-automatically — judge it with the qualitative self-audit in SKILL.md.
+automatically: judge it with the qualitative self-audit in SKILL.md.
 
 Sources for thresholds/signals:
   Kobak et al. 2025 (focal words, em-dash density)
@@ -145,7 +145,7 @@ def audit(text):
     sent_lens = [len(words(s)) for s in sentences] if sentences else [0]
 
     print("=" * 72)
-    print(f"SLOP AUDIT  —  {n_words} words, {len(sentences)} sentences")
+    print(f"SLOP AUDIT :  {n_words} words, {len(sentences)} sentences")
     print("=" * 72)
 
     # ---- Layer 1: lexical -------------------------------------------------
@@ -184,10 +184,10 @@ def audit(text):
     band("closing-ritual phrases", sum(close_hits.values()), len(close_hits) == 0,
          fmt_hits(close_hits) if close_hits else "")
 
-    # em dashes — count ONLY the real U+2014 character (—). The ASCII "--" form is
+    # em dashes: count ONLY the real U+2014 character (-). The ASCII "--" form is
     # too collision-prone: it matches CLI argument separators like `npm run eval -- file`,
     # shell option terminators, and code. The tell is CLUSTERED ADDITIVE use, not a
-    # lone disruptive aside — flag only when 2+ and dense.
+    # lone disruptive aside: flag only when 2+ and dense.
     em = text.count(EM_DASH)
     em_density = em * per1k
     em_ok = (em <= 1) or (em_density <= 4.0)
@@ -207,7 +207,7 @@ def audit(text):
     # ---- Layer 2: structure ----------------------------------------------
     print("\n--- LAYER 2: structure (burstiness, templatedness) ---")
 
-    # bullet / list density — computed early because burstiness is only meaningful for PROSE.
+    # bullet / list density: computed early because burstiness is only meaningful for PROSE.
     # A list-dominant text (commands, validation steps) legitimately has little prose; flagging
     # its burstiness would be a false positive.
     bullets = len(re.findall(r"^\s*[-*]\s", text, flags=re.MULTILINE))
@@ -219,7 +219,7 @@ def audit(text):
     sd = math.sqrt(var)
     cv = sd / mean if mean else 0
     if list_dominant or len(sentences) < 3:
-        print(f"  [SKIP ] burstiness (stdev/mean CV)     {cv:.2f}  (list-dominant: {bullet_pct*100:.0f}% bullet lines / {len(sentences)} sentences — burstiness is a prose metric, n/a here)")
+        print(f"  [SKIP ] burstiness (stdev/mean CV)     {cv:.2f}  (list-dominant: {bullet_pct*100:.0f}% bullet lines / {len(sentences)} sentences: burstiness is a prose metric, n/a here)")
         burstiness_flag = False
     else:
         band("burstiness (stdev/mean CV)", f"{cv:.2f}", cv >= 0.45,
@@ -236,7 +236,7 @@ def audit(text):
              f"{mid}/{len(sentences)} (high % = uniform = AI band)")
         mid_flag = mid_pct >= 0.6
 
-    # contractions — humans use them in casual prose, AI near-zero. BUT technical PR
+    # contractions: humans use them in casual prose, AI near-zero. BUT technical PR
     # descriptions / docs are legitimately contraction-free by convention, so this is a
     # WEAK signal: only flag when the text reads as casual prose (not list/command-dominant).
     contra = 0
@@ -263,7 +263,7 @@ def audit(text):
             tri += 1
     band("tricolon candidates (3x short)", tri, tri == 0, f"{tri}")
 
-    # type-token ratio (lexical diversity) — only meaningful for >200 words
+    # type-token ratio (lexical diversity): only meaningful for >200 words
     if n_words > 200:
         ttr = len(set(wlist)) / n_words
         band("type-token ratio", f"{ttr:.2f}", ttr >= 0.45, f"(<0.45 = repetitive)")
@@ -282,7 +282,7 @@ def audit(text):
 
     # ---- summary verdict --------------------------------------------------
     print("\n" + "=" * 72)
-    print("VERDICT (L1/L2 only — L3 needs the qualitative self-audit in SKILL.md)")
+    print("VERDICT (L1/L2 only: L3 needs the qualitative self-audit in SKILL.md)")
     print("=" * 72)
     flags = (
         (1 if focal_hits else 0) + (1 if sign_hits else 0) + (1 if close_hits else 0) +
@@ -298,7 +298,7 @@ def audit(text):
         print(f"  L1/L2 borderline ({flags} flags). Fix the flagged items, then re-run.")
     else:
         print(f"  L1/L2 hot ({flags} flags). This reads structurally AI. Do NOT just swap")
-        print("  words — rebuild: inject grounded specifics, build dependency chains,")
+        print("  words: rebuild: inject grounded specifics, build dependency chains,")
         print("  break burstiness, add one tangent/aside + an opinion. Then re-run.")
     print()
 

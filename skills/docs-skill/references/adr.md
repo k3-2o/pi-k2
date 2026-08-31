@@ -2,7 +2,7 @@
 
 ## What is an ADR?
 
-An Architecture Decision Record is a short document that captures a significant architectural decision, its context, and its consequences. ADRs are **immutable** — once written, they are not edited. If the decision is revisited, a new ADR supersedes the old one.
+An Architecture Decision Record is a short document that captures a significant architectural decision, its context, and its consequences. ADRs are **immutable**: once written, they are not edited. If the decision is revisited, a new ADR supersedes the old one.
 
 ## When to Write an ADR
 
@@ -30,7 +30,7 @@ decision was made. Include references to research, spikes, or discussions.
 ## Decision
 
 State the decision clearly. "We will use PostgreSQL as our primary database."
-This is not a discussion — it is a declaration of what was chosen.
+This is not a discussion, it is a declaration of what was chosen.
 
 ## Consequences
 
@@ -55,9 +55,9 @@ Be honest about the downsides. Every decision has them.
 ## ADR Best Practices
 
 - **One decision per ADR.** If two decisions are related but separable, write two ADRs.
-- **Write the context first.** The context is the most important section — it's what future maintainers will need to understand why.
+- **Write the context first.** The context is the most important section, it's what future maintainers will need to understand why.
 - **Be honest about alternatives.** Listing alternatives that were rejected, and why, is as valuable as documenting what was chosen.
-- **Use present tense for the decision.** "We choose X" not "We chose X" — the decision is current until superseded.
+- **Use present tense for the decision.** "We choose X" not "We chose X", the decision is current until superseded.
 - **Keep it short.** 200-500 words is the sweet spot. If an ADR exceeds 1000 words, it may be covering too much ground.
 - **Date and number sequentially.** ADR-001, ADR-002, etc. The number is the canonical reference.
 
@@ -84,5 +84,5 @@ docs/adr/
 
 ## Further Reading
 
-- [Documenting Architecture Decisions](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions) — Michael Nygard
-- [ADR GitHub organization](https://adr.github.io/) — Tooling and templates
+- [Documenting Architecture Decisions](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions), Michael Nygard
+- [ADR GitHub organization](https://adr.github.io/), Tooling and templates
