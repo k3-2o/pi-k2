@@ -1,178 +1,156 @@
-# Spec Guide — The Alzheimer's Format
+# Spec Guide: EARS Format
 
-> Write every specification like you have Alzheimer's and this document is
-> your only lifeline. Tomorrow you will remember nothing. This document must
-> contain everything a competent engineer needs to rebuild the project from
-> scratch, understand every decision, and avoid every pitfall you discovered
-> today.
-
-______________________________________________________________________
-
-## The Mindset
-
-You are an eloquent and highly intelligent senior engineer who knows that if
-you don't write everything down, you will forget it by tomorrow and lose your
-job. Writing this document is self-preservation tier emergency.
-
-**This means:**
-
-- No assumption is "too obvious" to write down
-- No decision is "too small" to explain
-- No risk is "too unlikely" to mention
-- No trade-off is "too clear" to state explicitly
-- No alternative is "too stupid" to record (the reasons it was rejected are valuable)
-
-You are not writing for an audience that knows what you know. You are writing
-for yourself tomorrow — who remembers nothing.
-
-______________________________________________________________________
-
-## Document Structure
+## Structure
 
 ### 1. Overview
 
-One paragraph: What is this project? What problem does it solve? Who is it for?
+One paragraph: what is this, what problem does it solve, who is it for.
 
 ### 2. Goals & Non-goals
 
-**Goals** — what this project must achieve. Be specific. "Handle 10K requests/second" not "be fast."
+Goals: specific and measurable ("handle 10K requests/second", not "be fast").
 
-**Non-goals** — what this project explicitly does NOT do. This prevents scope creep
-and makes the boundary clear. If someone later asks "why doesn't it do X?", the
-answer is in the spec.
+Non-goals: what this explicitly does NOT do. The answer to every future
+"why doesn't it do X?" lives here.
 
-### 3. Architecture Decisions
+### 3. Behavioral Requirements
 
-For every architectural choice:
+One `### Requirement N:` block per requirement: user story up top, acceptance
+criteria in EARS below, each criterion translating 1:1 into a test case. EARS
+per Mavin, Wilkinson, Harwood & Novak, "Easy Approach to Requirements Syntax"
+(EARS), 17th IEEE International Requirements Engineering Conference (RE'09),
+2009; used since by NASA, Airbus, Bosch, Siemens.
+
+```
+### Requirement 1: [title]
+
+**User Story:** As a [role], I want [capability], so that [benefit].
+
+#### Acceptance Criteria
+
+1. WHEN [trigger] THEN the system SHALL [response]
+2. IF [error condition] THEN the system SHALL [recovery behavior]
+3. WHILE [precondition] the system SHALL [continuous behavior]
+4. WHERE [optional feature present] the system SHALL [behavior]
+
+#### Additional Details
+
+- Priority: P1 (viable MVP on its own) / P2 / P3
+- Dependencies: [requirements or systems this depends on]
+- Assumptions: [defaults chosen where the user did not specify]
+```
+
+The five EARS keyword patterns cover every case:
+
+- Ubiquitous: the system SHALL <always do X>
+- State-driven: WHILE <precondition> the system SHALL <X>
+- Event-driven: WHEN <trigger> THEN the system SHALL <X>
+- Unwanted behaviour: IF <error condition> THEN the system SHALL <recovery>
+- Optional feature: WHERE <feature included> the system SHALL <X>
+
+Rules:
+
+- Number requirements (`FR-001`...): traceability requirement → task → test
+- Not independently testable = not done
+- Never guess silently: `**FR-006**: System MUST authenticate via [NEEDS CLARIFICATION: OAuth vs email/password?]`. Surface every marker to the user; an honest gap beats a confident wrong guess
+- Every error condition gets an `IF ... THEN`
+- Non-functional requirements (performance, security) get EARS treatment too
+
+P1 is the viable MVP: implementing only P1 still delivers value; if not, the
+slicing is wrong.
+
+Success criteria are measurable and technology-agnostic (`SC-001`: "signup
+completes in under 2 minutes", never "signup is fast").
+
+The spec ends with an end-to-end verification step: one scenario that proves
+the whole thing works. Exit criterion for the entire build.
+
+### 4. Architecture Decisions
+
+Every choice gets the five answers:
 
 | Question | Answer |
 |----------|--------|
-| What was chosen? | The actual decision |
-| What were the alternatives? | Every serious option considered |
-| Why was this chosen? | The reasoning, with specifics |
-| What are the trade-offs? | What you gain and what you sacrifice |
-| What would change this decision? | The conditions that would justify a different choice |
+| Chosen | the decision |
+| Alternatives | every serious option considered |
+| Why | the reasoning, with specifics |
+| Trade-offs | what you gain, what you sacrifice |
+| What would change it | conditions that justify revisiting |
 
-**Every decision gets this treatment.** No exceptions. The file structure, the
-package manager, the test framework, the error handling strategy, the config
-format — all of it.
+No exceptions: file structure, package manager, test framework, error strategy, config format.
 
-### 4. File-by-File Breakdown
+### 5. File-by-File Breakdown
 
-List every file in the project and explain:
+Every file: what it does, why it exists, non-obvious decisions, boundary edge cases.
 
 ```
-src/main.py          — Entry point. Parses CLI args, dispatches to handlers.
-                       Uses argparse because [reason]. Handles these exit codes: ...
-src/config.py        — Config loader. Reads YAML from ~/.config/<tool>/config.yaml.
-                       Falls back to defaults. Validates schema with pydantic.
-tests/test_config.py — Tests for config loading: missing file, invalid YAML, etc.
+src/main.py          — Entry point. Parses CLI args, dispatches handlers.
+                       argparse because [reason]. Exit codes: ...
+src/config.py        — Config loader. YAML from ~/.config/<tool>/config.yaml,
+                       defaults fallback, pydantic schema validation.
+tests/test_config.py — Missing file, invalid YAML, schema drift.
 ```
 
-For each file:
-
-- **What it does** — the responsibility
-- **Why it exists** — why this responsibility needed its own file
-- **Key design decisions** — anything non-obvious in the implementation
-- **Edge cases** — what happens at the boundaries
-
-### 5. Dependencies
+### 6. Dependencies
 
 | Dependency | Version | Why | Risk |
 |------------|---------|-----|------|
-| pyyaml | >=6.0 | YAML config parsing | Stable, widely used, low risk |
-| rich | >=13.0 | Terminal formatting | Heavy dependency, consider alternatives |
-| ... | ... | ... | ... |
+| pyyaml | >=6.0 | YAML parsing | stable, low risk |
+| rich | >=13.0 | terminal formatting | heavy; alternatives exist |
 
-For each:
+### 7. Data Flow
 
-- Why this dependency over alternatives
-- What version constraints apply and why
-- Known risks (abandoned, breaking changes incoming, license issues)
-
-### 6. Data Flow
-
-How data moves through the system. For a CLI tool:
+How data moves: entry points, state mutations, error paths, exit/response codes.
 
 ```
-User input → CLI parser → validation → handler → (maybe API call) → output formatting → stdout/stderr
+Request → middleware → auth → rate limit → handler → DB → response → logging
 ```
 
-For a service:
+### 8. Configuration Surface
 
-```
-Request → middleware → auth → rate limiter → handler → DB query → response → logging
-```
-
-Include:
-
-- Entry points
-- State mutations
-- Error paths (what happens when each step fails)
-- Exit codes / response codes
-
-### 7. Configuration Surface
-
-Every config option, its type, default, and what it controls:
+Every option with type, default, effect. Annotated example:
 
 ```yaml
-# ~/.config/<tool>/config.yaml
-verbose: false       # Enable verbose logging
-timeout: 30          # HTTP request timeout in seconds
-output: json         # Output format: json, yaml, table
+verbose: false       # verbose logging
+timeout: 30          # seconds
+output: json         # json | yaml | table
 ```
 
-If the config is complex, include a full annotated example.
+### 9. Testing Strategy
 
-### 8. Testing Strategy
+- What is tested at each level (unit / integration / e2e)
+- What is tricky and how it's handled (mocks, fixtures, test doubles)
+- What is NOT tested and why (acceptable risk, stated)
+- Exact run commands; coverage targets
 
-- **What is tested at each level** (unit, integration, e2e)
-- **What is tricky to test** and how you handle it (mocking, fixtures, test doubles)
-- **What is NOT tested** and why (acceptable risk)
-- **How to run tests** — the exact commands
-- **Coverage targets** and what's measured
-
-### 9. Risks & Unknowns
-
-Things you don't know yet. Things that could go wrong. Things that scare you.
+### 10. Risks & Unknowns
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| Dependency X drops Python 3.12 support | Low | High | Pin version, monitor releases |
-| Y feature might not scale past 10K users | Medium | Medium | Load test before launch |
-| Z is a known footgun | Medium | High | Add CI check, document in code |
+| dep X drops py3.12 | Low | High | pin version, monitor releases |
+| Y breaks past 10K users | Medium | Medium | load test before launch |
 
-### 10. Future Work
+### 11. Future Work
 
-Things explicitly deferred. Not forgotten — deferred. Each with a note on why
-it wasn't done now and what would trigger doing it later.
-
-______________________________________________________________________
+Explicitly deferred, not forgotten. Why not now; what triggers doing it later.
 
 ## Writing Style
 
-- **Be specific.** "Fast" is not a requirement. "\<100ms p99" is.
-- **Be honest.** If you're unsure, say so. "We think X is true because Y, but
-  we haven't verified Z."
-- **Be complete.** If a thought crosses your mind while writing, capture it.
-  Don't trust yourself to remember later.
-- **Be structured.** Use headings, tables, lists. Make the document scannable.
-  Tomorrow-you will be grateful.
-- **Be ruthless about "why."** Every time you state something, ask yourself
-  "why?" and write the answer. The what changes. The why survives.
-
-______________________________________________________________________
+- Specific: "\<100ms p99", not "fast"
+- Honest: "we think X because Y; Z unverified"
+- Complete: capture context as you decide it; unwritten context is lost
+- Structured: headings, tables, lists; scannable
+- Ruthless about why: the what changes; the why survives
 
 ## The Test
 
-After writing, ask yourself:
-
-> If I read this document tomorrow with no memory of the project, could I:
+> Could a competent engineer with zero project context:
 >
 > 1. Understand what we're building and why?
 > 1. Set up the dev environment from scratch?
 > 1. Know which decisions were made and why alternatives were rejected?
 > 1. Identify the riskiest parts of the system?
-> 1. Write code that fits the architecture without contradicting existing decisions?
-
-If the answer to any of these is "no," keep writing.
+> 1. Turn every EARS requirement into a test case without further explanation?
+> 1. Write code that fits the architecture without contradicting decisions?
+>
+> Any "no" → keep writing.

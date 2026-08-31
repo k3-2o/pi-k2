@@ -1,338 +1,226 @@
 ---
 name: project-setup
-description: "Bootstrap or resume project workspaces — pre-flight discussion check, workspace directory selection in ~/.workspaces/, SPEC.md (Alzheimer's format), PLAN-TODO.md, just-based dev environment with fmt/lint/check/test pipeline, verify pipeline, initial git commit, then debrief the LOOP iteration cycle. Use when asked to set up a workspace, bootstrap a project, init a new project, prepare the environment, or resume work. Always runs a pre-check first."
-compatibility: "Requires just (command runner). If missing, install via system package manager or ask user. Works with any language — Python/uv, TypeScript/npm, Rust/cargo, Go, etc."
+description: "Bootstrap or resume project workspaces: pre-check discussion, workspace dir in ~/.workspaces/, SPEC.md (EARS), TODO-PLAN.md, AGENT.md (rules, principles, references; no prose), just-based fmt/lint/check/test pipeline, pipeline verify, initial git commit, LOOP debrief. Use when asked to set up a workspace, bootstrap a project, init a new project, prepare the environment, or resume work. Always runs a pre-check first."
+compatibility: "Requires just (command runner); install via system package manager or ask user if missing. Any language: Python/uv, TypeScript/npm, Rust/cargo, Go, etc."
 ---
 
 # Workspace Bootstrap
 
-The LOOP methodology — a pre-flight → setup → write → fmt → check → test → commit cycle for project workspaces. This skill handles the full bootstrap sequence from workspace creation through initial commit, with a verification pass and a debrief on the iteration methodology.
+write → just (fmt lint check test) → docs → commit → repeat
 
-## The Workflow
+## Workflow
 
-```
-Phase 0: Pre-check
-    ↓ (not discussed → STOP)
-Phase 1: Workspace Location
-Phase 2: SPEC.md
-Phase 3: PLAN-TODO.md
-Phase 4: Environment Setup (just)
-Phase 5: Pipeline Verification
-Phase 6: Git Init
-    ↓
-Phase 7: Verify Setup
-```
+    0. Pre-check        (no discussion → STOP)
+    1. Workspace location
+    2. SPEC.md
+    3. TODO-PLAN.md
+    4. Environment (just)
+    5. Pipeline verify
+    6. Git init
+    7. Verify setup + debrief
 
-> **NOTE:** The phases below are the default path. Add additional phases as the project requires — the framework extends, it doesn't constrain.
+## Existing project (skip Phase 0)
 
----
+Project dir already has work? Run in order; fill the first gap found; never regenerate what exists:
 
-## Resuming an Existing Project
+1. `.agent/SPEC.md` (or project root) missing → Phase 2
+2. `.agent/TODO-PLAN.md` missing → Phase 3
+3. `justfile` missing → Phase 4
+4. `AGENT.md` missing or bloated → Phase 4d
+5. `just check && just test` failing → Phase 5
+6. Git not initialized → Phase 6
+7. All green → Phase 7
 
-If you're picking up an existing project or resuming work, don't start from Phase 0. Run this decision tree:
+## Phase 0: Pre-check
 
-1. **Is there a SPEC.md?** — Check `.vscode/SPEC.md` (or project root). If missing, go to Phase 2.
-2. **Is there a PLAN-TODO.md?** — Check `.vscode/PLAN-TODO.md`. If missing, go to Phase 3.
-3. **Is there a justfile?** — Check project root. If missing, go to Phase 4.
-4. **Is the pipeline green?** — Run `just check && just test`. If failing, go to Phase 5.
-5. **Is git initialized with a clean state?** — If not, go to Phase 6.
-6. **All present and green?** — Skip to Phase 7 (Verify Setup + debrief).
+Run before any action. Do not skip, even on explicit "set up a workspace".
 
-Fill gaps only where they exist. Don't regenerate what's already there — verify and supplement.
+1. Check conversation history: enough context for a detailed SPEC (what, why, stack, requirements)?
+2. None or too vague → stop and ask: what are we building, what problem, what stack, key requirements?
+3. Sufficient → Phase 1.
+4. Partial → interview: edge cases, technical implementation, concerns, tradeoffs. No obvious questions; dig into the hard parts. Continue until a complete spec is writable.
 
----
+## Phase 1: Workspace Location
 
-## Phase 0: Pre-check — Have We Discussed This?
+1. `~/.workspaces/` exists → list its category dirs, ask which (or a new category). Missing → ask for a path.
+2. Create the project dir, `cd` in. All later phases run there.
 
-**Run this before any action.** Do not skip.
+## Phase 2: SPEC.md
 
-1. Look through the conversation history. Has the user described what they want to build, the problem they're solving, or given enough context to write a detailed SPEC.md?
-2. If there is **NO prior discussion** or the discussion is **too vague** to produce a detailed spec and plan, **stop and state clearly**:
+1. Read [references/spec-guide.md](references/spec-guide.md). Required before writing; the spec is EARS format.
+2. Close Phase 0 gaps first: interview on edge cases, tradeoffs, error behavior until the spec is writable complete. Unresolved → `[NEEDS CLARIFICATION: ...]` marker; never guess silently.
+3. Write `SPEC.md` per the guide.
+4. Move into the agent planning folder (never mixes with `docs/`, human-facing):
 
-   > "We haven't discussed this project enough to write a proper SPEC and PLAN-TODO. Before I bootstrap the workspace, I need to understand: what are we building? What problem are we solving? What technology stack? Key requirements?"
-
-3. If there is **sufficient context**, proceed to Phase 1.
-4. If there is **partial context** (discussed some aspects but not others), flag what's missing before proceeding — ask specific clarifying questions.
-
-> **This phase is non-negotiable.** Even if the user explicitly says "set up a workspace" or "bootstrap the project", the pre-check runs first.
-
----
-
-## Phase 1: Choose Workspace Location
-
-Ask the user where they want the project created.
-
-1. **Check if `~/.workspaces/` exists.**
-   - If it does, list whatever classification directories are already there and ask which one to use (or whether to create a new category).
-   - If it doesn't, skip it — just ask the user for a path.
-
-2. **Ask the user** where the project directory should live. Accept whatever they give you.
-
-3. **Create the project directory** at the chosen path and `cd` into it. This is now the working directory for all subsequent phases.
-
----
-
-## Phase 2: Write SPEC.md
-
-1. **Read [references/spec-guide.md](references/spec-guide.md)** — the Alzheimer's spec format guide. This is required reading before writing the spec.
-
-2. Write `SPEC.md` following the guide. Capture:
-   - Project overview and goals
-   - Every architectural decision and trade-off
-   - File-by-file breakdown — what each file does, why it exists
-   - Dependencies and why each was chosen
-   - The "why" behind every choice
-   - Risks, unknowns, future concerns
-   - Test strategy and edge cases
-
-3. Create `.vscode/` directory:
    ```bash
-   mkdir -p .vscode
-   mv SPEC.md .vscode/SPEC.md
+   mkdir -p .agent
+   mv SPEC.md .agent/SPEC.md
    ```
 
----
+## Phase 3: TODO-PLAN.md
 
-## Phase 3: Write PLAN-TODO.md
+1. Read [references/todo-plan-guide.md](references/todo-plan-guide.md). Required before writing.
+2. Write `TODO-PLAN.md` per the guide: a todo list with the plan inside it. Every implementation task pairs with a `[ ] Write tests for ...` task.
 
-Write a detailed todo with plan structure:
-- **Phases** broken into discrete tasks, each with enough context to understand what it accomplishes, what it depends on, and when it's done
-- Each task gets a `[ ]` checkbox — checked off in the loop as work completes
-- Phases ordered logically for the project (typically: environment → core → extensions → polish → documentation)
+Principles to iterate over and reason about based on the project's nature. Weigh each against what the project actually is; distill the ones that apply into SPEC.md, TODO-PLAN.md, and AGENT.md (the enforced subset):
 
-This is both the plan and the todo. It tells you what to do and tracks what's done.
+Design:
 
-**Every implementation task must have a corresponding `[ ] Write tests for ...` checkbox.** Testing is not a separate phase — it lives alongside the implementation it covers.
+- SOLID: one purpose per unit; apply the letters that fit, force none
+- YAGNI: build what is needed now, not what might be needed later
+- KISS: the simplest thing that works; complexity must pay rent
+- DRY: one canonical home per fact; derive the rest
+- Law of Demeter: talk to collaborators, not strangers
+- Command-query separation: do a thing or answer a question, never both
+- Composition over inheritance: assemble behavior; deep hierarchies calcify
+- GRASP: responsibility lives where the information lives
 
-Tests must exercise real logic — assert on actual behavior, edge cases, and failure paths. Never write test theater: tests that only prove a function was called, assert on trivially true conditions, or exist solely to pass without questioning whether the code works.
+Structure:
 
-> **NOTE:** Use standard remote repo and project structure, separation of concerns, single-responsibility per file, and meaningful naming — how much of this applies depends on the project's weight, state, and calibre. Intelligently decide what fits. Reach for patterns you already know: package-by-layer or package-by-feature, clean or hexagonal architecture, repository and service layer patterns; SOLID, GRASP, DRY, YAGNI, KISS, Law of Demeter, command-query separation, composition over inheritance; PascalCase, camelCase, snake_case, kebab-case; TDD or BDD, arrange-act-assert, given-when-then, red-green-refactor; keep cyclomatic complexity in check, cohesion high and coupling low, single source of truth, fail fast, least astonishment, immutability, idempotency, boy scout rule — and whatever else from the breadth of your knowledge fits the project.
+- Separation of concerns: one reason to change per module
+- Single-responsibility files: the file name is the job description
+- Package-by-feature or by layer: pick one, stay consistent
+- Clean or hexagonal boundaries: domain logic imports nothing concrete; adapters point inward
+- Repository and service layers: data access and business rules never mix
+- Naming: language convention, intent in every name
 
-```bash
-mv PLAN-TODO.md .vscode/PLAN-TODO.md
-```
+Qualities:
 
-After writing both SPEC.md and PLAN-TODO.md, add `.vscode/` to `.gitignore`:
+- High cohesion, low coupling: things that change together live together
+- Single source of truth: one home per fact
+- Fail fast: bad state dies at the boundary, not three layers deep
+- Least astonishment: behave the way the reader guesses
+- Comments: why-only and rare; no narration one-liners; docstrings on public interfaces
+- Immutability by default: shared mutable state is a bug factory
+- Idempotency: same input, same effect, safe to retry
+- Readability over cleverness: code is read far more often than written
+- Delete dead code: git remembers; commented-out code rots
 
-```bash
-echo ".vscode/" >> .gitignore
-```
+Process:
 
----
+- TDD or BDD where it pays: red-green-refactor on logic worth specifying first
+- Arrange-act-assert, given-when-then: every test tells its story in three beats
+- Cyclomatic complexity in check: branching explodes comprehension; extract or table it
+- Boy scout rule: leave every touched file cleaner than you found it
+- One change per commit: refactor or feature, never both at once
+- Measure before optimizing: intuition about hot paths is wrong
+- No test theater, no Potemkin code: tests prove behavior; implementations do the work
 
-## Phase 4: Set Up the Dev Environment
+Boundaries:
 
-Before proceeding, verify the tooling is available:
+- Validate at the edge: parse input once at the boundary, trust it inside
+- Errors are values: handle where handleable, never swallow silently
+- Least privilege: minimal dependencies, permissions, scope
+- Secrets never in code: env and config only, never committed
 
-```bash
-bash scripts/preflight.sh   # Checks for just, git
-```
-
-If anything is missing, install it or ask the user before continuing.
-
-`just` is the command runner (replaces `make`). Orient yourself if needed:
-
-### 4a — Orient on `just`
-
-```bash
-just --help          # Understand the CLI interface
-just --man           # Full manual
-```
-
-Pay attention to:
-- Recipe syntax (how to define and run recipes)
-- Dependencies between recipes
-- How to set variables
-- How to run shell commands in recipes
-
-### 4b — Determine the Project Type
-
-Based on what you know about the project (from Phase 0 discussion), determine:
-- **Language:** Python, TypeScript, Rust, Go, Terraform, etc.
-- **Package manager:** uv, npm, cargo, go mod, etc.
-- **Test framework:** pytest, vitest, cargo test, go test, etc.
-- **Formatter:** ruff, prettier, rustfmt, gofmt, etc.
-- **Linter:** ruff, eslint, clippy, golangci-lint, etc.
-- **Type checker:** mypy, tsc, etc.
-- **Security scanner:** bandit, npm audit, cargo audit, etc.
-
-When in doubt, ask the user.
-
-### 4c — Initialize the Project
+- This list is not exhaustive: any principle you know beyond it that serves this project better gets the same treatment (reason, apply, distill)
 
 ```bash
-# Python with uv
-uv init --app --python 3.12
-
-# TypeScript with npm
-npm init -y
-
-# Rust
-cargo init
-
-# Go
-go mod init <module-name>
+mv TODO-PLAN.md .agent/TODO-PLAN.md
+echo ".agent/" >> .gitignore
 ```
 
-### 4d — Install Dev Dependencies
+## Phase 4: Environment
 
 ```bash
-# Python example
-uv add --dev ruff mypy bandit pytest pytest-cov
-
-# TypeScript example
-npm install --save-dev eslint prettier typescript vitest
+bash scripts/preflight.sh   # checks just, git; install missing or ask
 ```
 
-### 4e — Write the `justfile`
+### 4a. just
 
-Create a `justfile` in the project root with these recipes:
+`just --help`, `just --man`. Recipes, recipe dependencies, variables, shell lines.
 
-| Recipe | What it does |
-|--------|-------------|
-| `fmt` | Format all source files |
-| `lint` | Lint all source files |
-| `audit` | Check dependencies for known vulnerabilities |
-| `check` | fmt + lint + type checks + security + audit (all static analysis) |
-| `test` | Run the test suite |
-| `ci` | Full pipeline: fmt → lint → typecheck → security → audit → test |
+### 4b. Stack: pick the tools together
 
-See [references/justfile-templates.md](references/justfile-templates.md) for starter templates by language (Python, TypeScript, Rust, Go). Adapt to the project's specific toolchain — these are starting points, not prescriptions.
+One exact, ecosystem-standard tool per role, from the Phase 0 language set. Pin the version. Present the picks, judge together with the user, land them in SPEC.md and TODO-PLAN.md. Multi-role tools (ruff, biome) count once.
 
-### 4f — Write `.gitignore`
+Core roles:
 
-Write a `.gitignore` appropriate for the project language. Include common patterns:
+- Language + version: Python 3.12+, Node LTS, Rust stable, Go stable
+- Package manager: uv, npm, cargo, go mod
+- Test framework: pytest, vitest, cargo test, go test
+- Formatter + linter (one tool often covers both): ruff; biome; prettier + eslint; rustfmt + clippy; gofmt + golangci-lint
+- Type checker: mypy, tsc, rustc + clippy, go vet
 
-```
-# Python
-__pycache__/
-*.pyc
-.venv/
-*.egg-info/
-dist/
+Extended roles. Raise them, judge together, adopt only what this project needs:
 
-# TypeScript
-node_modules/
-dist/
-*.tsbuildinfo
+- Security: bandit (code); pip-audit, npm audit, cargo audit, govulncheck (deps); socket (supply chain); gitleaks, trufflehog (secrets); tfsec, checkov, trivy (IaC)
+- Hygiene: spell check (codespell, cspell); dead code (vulture, ts-prune, unused); AST grep
+- Recipes: smoke test (`tool --version && tool --help`), `clean`, `setup`, `outdated`, `release`
+- Process: lockfile commits, CHANGELOG.md, pre-commit hooks running `just check`
+- This list is not exhaustive: any tool you know beyond it that serves a role better gets the same treatment (raise it, judge together, adopt, land in SPEC.md and TODO-PLAN.md)
 
-# Rust
-target/
+### 4c. Scaffold: init, deps, justfile, .gitignore
 
-# Go
-vendor/
+Init:
 
-# General
-.env
-*.local
-```
+    uv init --app --python 3.12       # Python
+    npm init -y                       # TypeScript
+    cargo init                        # Rust
+    go mod init <module-name>         # Go
 
----
+Dev dependencies (4b picks):
 
-### 4g — Optional Extras (per-project)
+    uv add --dev <4b picks>          # Python
+    npm install --save-dev <4b picks>   # TypeScript
 
-These are **not required** for every project. Review with the user and confirm which to add — don't decide alone.
 
-**Pipeline additions** (run as part of `just check` or as standalone recipes):
-- **AST grep** — structural code search
-- **Spell check** — `codespell` / `cspell` for typos in code and docs
-- **Dead code detection** — `vulture` (Python), `ts-prune` (TypeScript), `unused` (Rust)
+.gitignore: language patterns (`__pycache__/`, `node_modules/`, `target/`, `vendor/`, `.env`, `*.local`, ...); must include `.agent/` and `AGENT.md`.
 
-**Justfile additions** (new recipes):
-- **Smoke test** — `<tool> --version && <tool> --help` to catch broken entry points
-- **`just clean`** — nuke build artifacts, `__pycache__`, `node_modules`, `target/`, etc.
-- **`just setup`** — single command from clone to dev-ready: install deps, copy config, create dirs
-- **`just outdated`** — track dependency lag (`uv outdated`, `npm outdated`)
-- **`just release`** — version bump + changelog + git tag + publish
+### 4d. AGENT.md (required)
 
-**Dependency & security:**
-- **Dependency freeze** — commit lockfile after every package add for reproducible installs
-- **Secrets scanning** — `gitleaks` / `trufflehog` for accidentally committed credentials
-- **Domain-specific security** — `tfsec`/`checkov` (Terraform), `trivy` (Docker), etc.
-
-**Process:**
-- **Changelog workflow** — maintain `CHANGELOG.md` as part of the commit cycle
-- **Pre-commit hooks** — run `just check` before every commit, block on failure
-- **AGENT.md** — behavioral instructions for agents working on the project (tooling rules, code conventions, test rules, workflow rules, boundaries). Read [references/agent-md-guide.md](references/agent-md-guide.md) before writing. Place at project root, add to `.gitignore`.
-
----
-
-## Phase 5: Verify the Pipeline
-
-Run each step and confirm it passes:
+Read [references/agent-md-guide.md](references/agent-md-guide.md). Required before writing or touching it. Write or repair at project root per the guide; Principles section = enforced subset of the Phase 3 reminder.
 
 ```bash
-just fmt          # Should format cleanly
-just check        # Should pass — lint + types + security all green
-just test         # Should run (even if 0 tests collected)
+echo "AGENT.md" >> .gitignore
 ```
 
-If any step fails, fix it before proceeding. Common issues by language:
-- **Python** — missing `__init__.py` files, unused imports, missing type annotations
-- **TypeScript** — missing type exports, implicit `any`, unused variables
-- **Rust** — unused `#[allow(dead_code)]`, missing trait imports, lifetime annotations
-- **Go** — missing imports, unused variables, incorrect module path in `go.mod`
-- **General** — formatter vs. linter disagreement — always run `just fmt` first, then `just check`
+## Phase 5: Pipeline Verify
 
----
+    just fmt
+    just check
+    just test    # runs even with 0 tests
 
-## Phase 6: Initial Git Commit
+All pass before proceeding, plus every recipe adopted from 4b (smoke, audit, ...). On failure: `just fmt` first, then `just check`. Common: Python missing `__init__.py`, unused imports, annotations; TS implicit `any`, unused vars; Rust dead_code, trait imports, lifetimes; Go imports, unused vars, module path.
 
-```bash
-git init
-git add -A
-git commit -m "Initial — <project-name>: <brief description>"
-```
+## Phase 6: Git Init
 
----
+    git init
+    git add -A
+    git commit -m "Initial: <project-name> <brief description>"
 
 ## Phase 7: Verify Setup
 
-Confirm everything from Phases 0–6 landed correctly:
+1. cwd is the project dir
+2. `.agent/SPEC.md`: overview, goals, EARS requirements (prioritized), success criteria, architecture, file breakdown, dependencies, tests, risks; ends with end-to-end verification
+3. `.agent/TODO-PLAN.md`: phased checkboxes, progress bar
+4. `.gitignore`: `.agent/`, `AGENT.md`, language patterns
+5. `justfile`: the six core recipes plus one per adopted 4b extended role
+6. every `just` recipe chosen passes (`fmt`, `check`, `test` extra )
+7. Git repo, at least one commit
+8. `AGENT.md` at root: rules/principles/workflow/references only
 
-1. **Workspace exists** — `~/.workspaces/<category>/<project>/` is the cwd
-2. **SPEC.md** — present at `.vscode/SPEC.md`, covers overview, goals, architecture, file breakdown, dependencies, testing strategy, risks
-3. **PLAN-TODO.md** — present at `.vscode/PLAN-TODO.md`, has phased tasks with checkboxes and a progress bar
-4. **`.gitignore`** — present, includes `.vscode/` and language-specific patterns
-5. **`justfile`** — present with at minimum: `fmt`, `lint`, `check`, `test`, `ci` recipes
-6. **Pipeline green** — `just fmt`, `just check`, and `just test` all pass
-7. **Git repo** — initialized with at least one commit (the initial commit)
+Fix anything missing or broken before proceeding.
 
-If anything is missing or broken, fix it now. Do not proceed until every item above is confirmed.
+### Debrief (in chat, not a file)
 
----
+Explain the loop with this project's actual recipes:
 
-### Debrief: Explain the LOOP
+    write → just [recipes] → docs → commit → repeat
 
-Once verification passes, explain the iteration cycle **in the chat window** — not in a file. Walk the user through:
+- Failure path: auto-fix where possible, else manual fix, re-run
+- Docs: TODO-PLAN.md ticked every cycle; SPEC.md on scope/decision change; AGENT.md on rule/convention change
+- Commit only when checks pass and docs are current
 
-```
-write → just [fmt lint check audit smoke test ...] → extras [outside just] → read & update docs → commit → repeat
-```
+Then ask: "Is that exactly this project's loop? Anything to add, remove, rearrange?" Adjust until confirmed.
 
-For each step, explain:
-- **What it does** and why it's in the cycle
-- **Which `just` recipes** apply (the project's specific set — not a generic list)
-- **What happens on failure** — auto-fix where available, manual fix where not, re-run
-- **Docs update** — PLAN-TODO.md checkboxes get ticked every cycle, SPEC.md updated when scope or decisions change
-- **Commit discipline** — only commit when all checks pass and docs are current
+Last: tell the user to review `.agent/SPEC.md` and `.agent/TODO-PLAN.md` thoroughly, requirements to task order, and confirm or request changes. No implementation starts until both are approved.
 
-### Confirm with the User
-
-After the explanation, ask:
-
-> "Is that exactly what's supposed to happen with this project's loop? Anything to add, remove, or rearrange?"
-
-Wait for their response. If they want changes, adjust and re-confirm. Once confirmed, **the setup is complete.** The skill ends here — no implementation starts.
-
----
+Setup ends here.
 
 ## Resources
 
-### references/
-- [spec-guide.md](references/spec-guide.md) — The Alzheimer's spec format. Read this before writing SPEC.md (Phase 2).
-- [justfile-templates.md](references/justfile-templates.md) — Starter justfile templates by language (Python, TypeScript, Rust, Go).
-- [agent-md-guide.md](references/agent-md-guide.md) — What to write in AGENT.md and how to structure it. Read before writing AGENT.md if selected as an optional extra.
-
-### scripts/
-- [preflight.sh](scripts/preflight.sh) — Verifies `just` and `git` are available. Run at the start of Phase 4.
+- [references/spec-guide.md](references/spec-guide.md): EARS spec format. Read before Phase 2.
+- [references/todo-plan-guide.md](references/todo-plan-guide.md): TODO-PLAN format. Read before Phase 3.
+- [references/agent-md-guide.md](references/agent-md-guide.md): AGENT.md format. Read before Phase 4d.
+- [scripts/preflight.sh](scripts/preflight.sh): checks just, git. Run at Phase 4 start.
