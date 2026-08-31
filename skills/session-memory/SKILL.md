@@ -12,7 +12,7 @@ Each line is a node in one tree, linked `id` → `parentId`:
 
     session {cwd}
     └─ message[user] → message[assistant] → message[toolResult] → …
-       (tool loops nest deeper; searchable text often lives in thinking)
+       (tool loops nest deeper)
 
 `session_info {name}` / `compaction {summary}` attach anywhere. Compacted
 spans are gone — only summaries survive.
@@ -23,8 +23,6 @@ spans are gone — only summaries survive.
   transcripts, never rebuilt by hand — the slug subdir is part of the path.
 - **Recurse.** Sessions nest under per-workspace slug dirs; scans must use
   `rglob`. Plain `glob` silently finds nothing (verify count ≠ 0).
-- **Keywords hide in `thinking` blocks.** Text-only filters miss them; grep
-  raw lines when the text pass comes up empty.
 - **`rg -e a -e b` is line-OR, not AND.** Co-occurrence needs a second pass
   or a set intersection.
 - **The session you are in echoes your query** and ranks #1 — drop it.
