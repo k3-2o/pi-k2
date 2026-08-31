@@ -1,4 +1,4 @@
-# Codebase Intelligence — Tool Catalog
+# Codebase Intelligence: Tool Catalog
 
 A reference catalog of code analysis tools organized by language and domain. Consult this when recommending intelligence tools to the user at the end of an audit.
 
@@ -8,12 +8,12 @@ This file does not instruct the agent to run anything. It provides the informati
 
 Match tool recommendations to the project's weight:
 
-- **~200 lines** — Nothing. The adversarial audit already read every line.
-- **500–2K lines** — A type checker + one linter. That's usually enough.
-- **5K–50K lines** — Dead code detection, complexity analysis, a security scan.
-- **50K+ lines** — Full spectrum: architecture, churn, duplication, dependencies.
-- **A library/package** — Semver checking, type coverage, dead exports. Skip architecture.
-- **A prototype/fork** — Fast checks only. Don't deep-dive something that'll be rewritten.
+- **~200 lines**: nothing. The adversarial audit already read every line.
+- **500 to 2K lines**: a type checker plus one linter. Usually enough.
+- **5K to 50K lines**: dead code detection, complexity analysis, a security scan.
+- **50K+ lines**: full spectrum: architecture, churn, duplication, dependencies.
+- **A library/package**: semver checking, type coverage, dead exports. Skip architecture.
+- **A prototype/fork**: fast checks only. Do not deep-dive something headed for a rewrite.
 
 When recommending, name the tools and say what they catch.
 
@@ -21,7 +21,7 @@ ______________________________________________________________________
 
 ## TypeScript / JavaScript
 
-### Multi-signal (run first — cover the most ground)
+### Multi-signal (run first; covers the most ground)
 
 | Tool | What it catches | Run |
 |------|----------------|-----|
@@ -95,7 +95,7 @@ ______________________________________________________________________
 | Tool | What it catches | Run |
 |------|----------------|-----|
 | **pylint** | Comprehensive linting, semantic analysis, naming, complexity | `pylint **/*.py` |
-| **xenon** | Complexity monitoring (wraps radon) — enforces cyclomatic complexity thresholds | `xenon . --max-absolute B --max-modules A --max-average A` |
+| **xenon** | Complexity monitoring (wraps radon); enforces cyclomatic complexity thresholds | `xenon . --max-absolute B --max-modules A --max-average A` |
 | **radon** | Raw metrics: cyclomatic complexity, maintainability index, SLOC | `radon cc . -s` |
 
 ### Security
@@ -169,7 +169,7 @@ ______________________________________________________________________
 | Tool | What it catches | Run |
 |------|----------------|-----|
 | **clippy** | `dead_code` lint (project-wide, can be noisy on large codebases) | Part of clippy |
-| **wire-check** | Detects code that compiles but isn't connected to anything — modules not integrated into the call graph. CI-gateable | `cargo wire-check` |
+| **wire-check** | Detects code that compiles but is not connected to anything: modules missing from the call graph. CI-gateable | `cargo wire-check` |
 
 ### Architecture & correctness
 
@@ -184,7 +184,7 @@ ______________________________________________________________________
 | Tool | What it catches | Run |
 |------|----------------|-----|
 | **semgrep** | Custom security patterns | `semgrep --config=auto` |
-| **pedant** | Capability detection — what system resources does this crate access? | Part of pedant |
+| **pedant** | Capability detection: what system resources does this crate access? | Part of pedant |
 
 ### Dependencies
 
@@ -211,7 +211,7 @@ ______________________________________________________________________
 
 | Tool | What it catches | Run |
 |------|----------------|-----|
-| **Shamash** | JVM architecture enforcement — enforces package/module boundaries | Via Gradle plugin |
+| **Shamash** | JVM architecture enforcement; package/module boundaries | Via Gradle plugin |
 | **Aalekh** | Gradle plugin: extracts, visualizes, and enforces architectural rules across multi-module projects (KMP, Android, JVM) | `./gradlew aalekh` |
 | **ArchUnit** | Java architecture testing framework (layers, cycles, package dependencies) | Via test runner |
 
@@ -321,7 +321,7 @@ ______________________________________________________________________
 
 | Tool | What it catches | Run |
 |------|----------------|-----|
-| **include-what-you-use** | Analyzes #include usage — finds unused includes, missing includes. Prevents header bloat | `include-what-you-use file.cpp` (needs compile_commands.json) |
+| **include-what-you-use** | Analyzes #include usage: unused and missing includes. Prevents header decay | `iwyu <file>` |
 | **cpplint** | Google-style C++ style checker | `cpplint --filter=-whitespace,-readability file.cpp` |
 
 ### Quality & complexity
@@ -347,7 +347,7 @@ ______________________________________________________________________
 | **zbc** | Lifetime, ownership, and cleanup bug inference. 45 rules: flow analysis (use-after-free, double-free), structural analysis (missing deinit, unused fields) | `zbc src/` |
 | **ziglint** | Linting: enforces best practices, style, consistency | `ziglint .` |
 | **zlinter** | Extendable linter integrated into build.zig | Via build.zig |
-| **ZLS** | Language server — diagnostics, unused variable detection, type checking | Built-in zls |
+| **ZLS** | Language server: diagnostics, unused variable detection, type checking | Built-in zls |
 
 ______________________________________________________________________
 
@@ -369,7 +369,7 @@ These tools cover many languages at once. Run them early.
 |------|-----------|----------------|-----|
 | **semgrep** | 30+ languages | Custom security + quality patterns, bug variants. `--config=auto` auto-selects rules | `semgrep --config=auto` |
 | **SonarQube** | 30+ languages | Industry platform: bugs, vulnerabilities, code smells, complexity, duplication, security hotspots | Requires server setup (ask user first) |
-| **Repowise** | 12+ languages | Code health scores, auto-generated docs, git analytics, dead code detection. MCP server for AI agents | Ask user — requires API key |
+| **Repowise** | 12+ languages | Code health scores, auto-generated docs, git analytics, dead code detection | SaaS |
 | **CodeQL** | 12+ languages | Deep semantic analysis, taint tracking. Best for security (CVE discovery) | Requires GitHub setup |
 
 ______________________________________________________________________
