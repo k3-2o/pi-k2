@@ -1,6 +1,6 @@
 ---
 name: session-memory
-description: Recall past pi conversations from session history. Use when the user references earlier work, past decisions, or anything from a previous session.
+description: Search past pi session logs when the user references earlier work, prior decisions, or a previous session and current context can't answer it. Don't load for general questions, only when history genuinely matters.
 ---
 
 # Session Memory
