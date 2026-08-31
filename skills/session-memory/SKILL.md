@@ -23,8 +23,8 @@ spans are gone — only summaries survive.
   transcripts, never rebuilt by hand — the slug subdir is part of the path.
 - **Recurse.** Sessions nest under per-workspace slug dirs; scans must use
   `rglob`. Plain `glob` silently finds nothing (verify count ≠ 0).
-- **Keywords hide in `thinking` blocks.** Text-only filters miss them; grep
-  raw lines when the text pass comes up empty.
+- **Search `thinking` blocks too.** Keywords often live in the assistant's
+  reasoning, not the visible reply; never filter to text-only.
 - **`rg -e a -e b` is line-OR, not AND.** Co-occurrence needs a second pass
   or a set intersection.
 - **The session you are in echoes your query** and ranks #1 — drop it.
@@ -42,7 +42,8 @@ spans are gone — only summaries survive.
    and ~10 hits per session; peek at matched lines before reading far. The
    sketch below is illustrative — adapt it, don't replicate it line-for-line.
 3. **Confirm** with `session_info.name` / `compaction.summary`.
-4. **Read as turns** `[HH:MM] role: text`, ~300 chars each. Widen one window
+4. **Read as turns** `[HH:MM] role: text` (thinking flattened in), ~300 chars
+   each. Widen one window
    at a time (≤5 lines before/after). Never dump raw lines or a whole session.
 5. **Miss → loop back:** next tier of ranked sessions, relax the per-file cap,
    try variant terms (2-3 passes is normal). Triage/eviction sessions name
@@ -67,8 +68,8 @@ exclude the current session, cap, peek.
     def real_turn(raw):
         m = json.loads(raw).get("message", {})
         if m.get("role") not in ("user", "assistant"): return False
-        return any(b.get("type") == "text" and b.get("text", "").strip()
-                   for b in m.get("content", []) if isinstance(b, dict))
+        return any(isinstance(b, dict) and (b.get("text") or b.get("thinking"))
+                   for b in m.get("content", []))
 
     out = subprocess.run(["rg", "-n", "-i", "-F", "-g", "*.jsonl", "-m", "200"]
                          + [f"-e{t}" for t in terms]
@@ -85,4 +86,4 @@ exclude the current session, cap, peek.
                     key=lambda kv: (-len(kv[1]), -Path(kv[0]).stat().st_mtime))[:10]
     for path, lns in ranked:
         print(len(lns), Path(path).name)
-    # then read the winning lines as flattened turns [HH:MM] role: text
+    # then read winners as flattened turns [HH:MM] role: text — text + thinking
