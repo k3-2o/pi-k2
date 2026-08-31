@@ -23,8 +23,8 @@ spans are gone — only summaries survive.
   transcripts, never rebuilt by hand — the slug subdir is part of the path.
 - **Recurse.** Sessions nest under per-workspace slug dirs; scans must use
   `rglob`. Plain `glob` silently finds nothing (verify count ≠ 0).
-- **`rg -e a -e b` is line-OR, not AND.** Co-occurrence needs a second pass
-  or a set intersection.
+- **`rg -e a -e b` is line-OR, not AND.** Hence the sketch runs one pass
+  per term: co-occurrence is a set intersection, proximity a line-span.
 - **The session you are in echoes your query.** The search itself must
   exclude it (rg `-g !` + parse-time skip) — it never shows up, ever.
 - **Rank both roles.** The topic often lives in the assistant answer.
@@ -35,11 +35,13 @@ spans are gone — only summaries survive.
    names, versions, dates; split camelCase; drop fillers and ≤2-char tokens.
    Mine the actor/verb/object of the claim separately — each may have its
    own term. <5 solid terms → stop and ask.
-2. **rg → keep real turns → rank → cap → peek.** `rg -F` across the sessions
-   dir; keep only lines whose message role is user/assistant with non-empty
-   text; rank by hits per session with recency as tiebreak; cap ~10 sessions
-   and ~10 hits per session; peek at matched lines before reading far. The
-   sketch below is illustrative — adapt it, don't replicate it line-for-line.
+2. **rg → keep real turns → rank → cap → peek.** One `rg -F` pass per term;
+   keep only lines whose message role is user/assistant with non-empty text.
+   Sessions holding ALL terms outrank partials; among full matches, the
+   tighter the terms are packed (min line-span) the better, then volume,
+   then recency. Cap ~10 sessions. Print the top hits WITH their matched
+   lines — never rank blind. The sketch below is illustrative — adapt it,
+   don't replicate it line-for-line.
 3. **Confirm** with `session_info.name` / `compaction.summary`.
 4. **Read as turns** `[HH:MM] role: text`, ~300 chars each. Widen one window
    at a time (≤5 lines before/after). Never dump raw lines or a whole session.
@@ -64,31 +66,63 @@ exclude the current session, cap, peek.
     from pathlib import Path
 
     SESSIONS = Path.home() / ".pi/agent/sessions"
-    # resolve the .jsonl you are executing in from context (your session id /
-    # slug dir, cross-checked via session_info.name) — never hand-built
-    CURRENT = "<your own session file, resolved>"
+    CURRENT = "<your own session file, resolved — never hand-built>"
+    TERMS = [...]                            # mined terms
 
     def real_turn(raw):
-        m = json.loads(raw).get("message", {})
+        try:
+            m = json.loads(raw).get("message", {})
+        except json.JSONDecodeError:
+            return False                       # tolerate stray non-JSON lines
         if m.get("role") not in ("user", "assistant"): return False
         return any(b.get("type") == "text" and b.get("text", "").strip()
                    for b in m.get("content", []) if isinstance(b, dict))
 
-    # exclude the current session IN THE QUERY — it must never surface
-    out = subprocess.run(["rg", "-n", "-i", "-F", "-g", "*.jsonl",
-                          "-g", f"!{Path(CURRENT).name}", "-m", "200"]
-                         + [f"-e{t}" for t in terms] + [str(SESSIONS)],
-                         capture_output=True, text=True)
-    hits = defaultdict(list)
-    for line in out.stdout.splitlines():
-        path, _, rest = line.partition(":")
-        ln, _, raw = rest.partition(":")
-        if path == CURRENT:              # belt-and-suspenders: never rank
-            continue                     # your own echo either
-        if real_turn(raw):
-            hits[path].append(int(ln))
-    ranked = sorted(hits.items(),
-                    key=lambda kv: (-len(kv[1]), -Path(kv[0]).stat().st_mtime))[:10]
-    for path, lns in ranked:
-        print(len(lns), Path(path).name)
-    # then read the winning lines as flattened turns [HH:MM] role: text
+    # one rg pass PER TERM: co-occurrence and proximity need per-term positions
+    occ = defaultdict(lambda: defaultdict(set))   # path -> term -> {turn lines}
+    raws = defaultdict(dict)                      # path -> line no -> raw jsonl
+    for term in TERMS:
+        out = subprocess.run(["rg", "-n", "-i", "-F", "-g", "*.jsonl",
+                              "-g", f"!{Path(CURRENT).name}", "-m", "200",
+                              "-e", term, str(SESSIONS)],
+                             capture_output=True, text=True)
+        for line in out.stdout.splitlines():
+            path, _, rest = line.partition(":")
+            ln, _, raw = rest.partition(":")
+            if path != CURRENT and real_turn(raw):
+                occ[path][term].add(int(ln))
+                raws[path][int(ln)] = raw
+
+    def min_span(term_lines):                  # tightest window holding every term
+        if set(term_lines) != set(TERMS):
+            return None                        # partial match: never outranks
+        pos = sorted((ln, t) for t, ls in term_lines.items() for ln in ls)
+        best = sum(len(ls) for ls in term_lines.values()) * 10**6
+        for i in range(len(pos)):
+            seen, j = {pos[i][1]}, i
+            while len(seen) < len(TERMS) and j + 1 < len(pos):
+                j += 1
+                seen.add(pos[j][1])
+            if len(seen) == len(TERMS):
+                best = min(best, pos[j][0] - pos[i][0])
+        return best
+
+    span_of = {p: min_span(tl) for p, tl in occ.items()}
+    span_key = {p: (s if s is not None else 10**9) for p, s in span_of.items()}
+    # all-terms sessions first -> tighter proximity -> more terms -> recency
+    ranked = sorted(occ.items(), key=lambda kv: (
+        span_of[kv[0]] is None,
+        span_key[kv[0]],
+        -len(kv[1]),
+        -sum(len(v) for v in kv[1].values()),
+        -Path(kv[0]).stat().st_mtime))[:10]
+
+    # SHOW THE HIT LINES, not just the file: top sessions with their matches
+    for path, term_lines in ranked[:3]:
+        lns = sorted({ln for ls in term_lines.values() for ln in ls})
+        print(f"== {Path(path).name}  span={span_of[path]}  hits={len(lns)}")
+        for ln in lns[:3]:
+            m = json.loads(raws[path][ln])["message"]
+            text = " ".join(b.get("text", "") for b in m.get("content", [])
+                            if isinstance(b, dict) and b.get("type") == "text")
+            print(f"   [{ln}] {' '.join(text.split())[:220]}")
