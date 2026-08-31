@@ -56,10 +56,13 @@ No match → "nothing in history matches"; failed → "retry". On a hit, quote
 the matched user turn(s) verbatim — the user recognizes their own words
 instantly, and the hunt is over.
 
-## Illustrative sketch
+## Illustrative example — one cell per stage
 
-A shape, not a spec. The point is the invariants: turn-filter before ranking,
-exclude the current session, cap, peek.
+An example of the mechanics, not a spec to reproduce verbatim — and not one
+blob: run the cells **in order, one at a time** (state carries over between
+cells), adapting each as you go. Cell 1 maps to step 1, cells 2-4 to step 2.
+
+**Cell 1 — setup** (terms already mined in step 1)
 
     import json, subprocess
     from collections import defaultdict
@@ -67,18 +70,19 @@ exclude the current session, cap, peek.
 
     SESSIONS = Path.home() / ".pi/agent/sessions"
     CURRENT = "<your own session file, resolved — never hand-built>"
-    TERMS = [...]                            # mined terms
+    TERMS = [...]                            # mined in step 1
 
-    def real_turn(raw):
+    def real_turn(raw):                  # keep only real user/assistant turns
         try:
             m = json.loads(raw).get("message", {})
         except json.JSONDecodeError:
-            return False                       # tolerate stray non-JSON lines
+            return False                 # tolerate stray non-JSON lines
         if m.get("role") not in ("user", "assistant"): return False
         return any(b.get("type") == "text" and b.get("text", "").strip()
                    for b in m.get("content", []) if isinstance(b, dict))
 
-    # one rg pass PER TERM: co-occurrence and proximity need per-term positions
+**Cell 2 — search** (one rg pass per term; the current session never surfaces)
+
     occ = defaultdict(lambda: defaultdict(set))   # path -> term -> {turn lines}
     raws = defaultdict(dict)                      # path -> line no -> raw jsonl
     for term in TERMS:
@@ -93,9 +97,11 @@ exclude the current session, cap, peek.
                 occ[path][term].add(int(ln))
                 raws[path][int(ln)] = raw
 
-    def min_span(term_lines):                  # tightest window holding every term
+**Cell 3 — rank** (all-terms first, then tighter proximity, then recency)
+
+    def min_span(term_lines):            # tightest window holding every term
         if set(term_lines) != set(TERMS):
-            return None                        # partial match: never outranks
+            return None                  # partial match: never outranks
         pos = sorted((ln, t) for t, ls in term_lines.items() for ln in ls)
         best = sum(len(ls) for ls in term_lines.values()) * 10**6
         for i in range(len(pos)):
@@ -109,7 +115,6 @@ exclude the current session, cap, peek.
 
     span_of = {p: min_span(tl) for p, tl in occ.items()}
     span_key = {p: (s if s is not None else 10**9) for p, s in span_of.items()}
-    # all-terms sessions first -> tighter proximity -> more terms -> recency
     ranked = sorted(occ.items(), key=lambda kv: (
         span_of[kv[0]] is None,
         span_key[kv[0]],
@@ -117,7 +122,8 @@ exclude the current session, cap, peek.
         -sum(len(v) for v in kv[1].values()),
         -Path(kv[0]).stat().st_mtime))[:10]
 
-    # SHOW THE HIT LINES, not just the file: top sessions with their matches
+**Cell 4 — peek, never rank blind** (show the hit lines, not just files)
+
     for path, term_lines in ranked[:3]:
         lns = sorted({ln for ls in term_lines.values() for ln in ls})
         print(f"== {Path(path).name}  span={span_of[path]}  hits={len(lns)}")
