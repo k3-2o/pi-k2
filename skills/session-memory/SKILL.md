@@ -57,6 +57,8 @@ instantly, and the hunt is over.
 
 ## Example
 
+One way this can look:
+
     import json, subprocess
     from collections import defaultdict
     from pathlib import Path
