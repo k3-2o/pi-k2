@@ -25,7 +25,8 @@ spans are gone — only summaries survive.
   `rglob`. Plain `glob` silently finds nothing (verify count ≠ 0).
 - **`rg -e a -e b` is line-OR, not AND.** Co-occurrence needs a second pass
   or a set intersection.
-- **The session you are in echoes your query** and ranks #1 — drop it.
+- **The session you are in echoes your query.** The search itself must
+  exclude it (rg `-g !` + parse-time skip) — it never shows up, ever.
 - **Rank both roles.** The topic often lives in the assistant answer.
 
 ## Procedure
@@ -62,23 +63,30 @@ exclude the current session, cap, peek.
     from collections import defaultdict
     from pathlib import Path
 
+    SESSIONS = Path.home() / ".pi/agent/sessions"
+    # resolve the .jsonl you are executing in from context (your session id /
+    # slug dir, cross-checked via session_info.name) — never hand-built
+    CURRENT = "<your own session file, resolved>"
+
     def real_turn(raw):
         m = json.loads(raw).get("message", {})
         if m.get("role") not in ("user", "assistant"): return False
         return any(b.get("type") == "text" and b.get("text", "").strip()
                    for b in m.get("content", []) if isinstance(b, dict))
 
-    out = subprocess.run(["rg", "-n", "-i", "-F", "-g", "*.jsonl", "-m", "200"]
-                         + [f"-e{t}" for t in terms]
-                         + [str(Path.home() / ".pi/agent/sessions")],
+    # exclude the current session IN THE QUERY — it must never surface
+    out = subprocess.run(["rg", "-n", "-i", "-F", "-g", "*.jsonl",
+                          "-g", f"!{Path(CURRENT).name}", "-m", "200"]
+                         + [f"-e{t}" for t in terms] + [str(SESSIONS)],
                          capture_output=True, text=True)
     hits = defaultdict(list)
     for line in out.stdout.splitlines():
         path, _, rest = line.partition(":")
         ln, _, raw = rest.partition(":")
+        if path == CURRENT:              # belt-and-suspenders: never rank
+            continue                     # your own echo either
         if real_turn(raw):
             hits[path].append(int(ln))
-    # drop the session you are in now, rank, cap, then peek at the winner:
     ranked = sorted(hits.items(),
                     key=lambda kv: (-len(kv[1]), -Path(kv[0]).stat().st_mtime))[:10]
     for path, lns in ranked:
