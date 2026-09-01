@@ -9,7 +9,7 @@ Four sections, in order:
 1. Rules: commands and constraints agents can't guess from the code; comment policy (comments are why-only and rare; docstrings on public interfaces only)
 2. Principles: the subset distilled from the Phase 3 Principles that this project will enforces
 3. Workflow: the project's loop; TODO-PLAN.md ticked every cycle; SPEC.md when scope or decisions change; and any other doc the project state contradicts gets updated that same cycle
-4. References: one pointer per line (.agent/SPEC.md, .agent/TODO-PLAN.md, and other project specific docs)
+4. References: one pointer per line (.agents/SPEC.md, .agents/TODO-PLAN.md, and other project specific docs)
 
 ## Rules
 

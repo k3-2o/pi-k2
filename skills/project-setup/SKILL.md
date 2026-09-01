@@ -24,8 +24,8 @@ Everything is a user iteration: the user is an active participant, never passive
 
 Project dir already has work? Run in order; fill the first gap found; never regenerate what exists:
 
-1. `.agent/SPEC.md` (or project root) missing → Phase 2
-2. `.agent/TODO-PLAN.md` missing → Phase 3
+1. `.agents/SPEC.md` (or project root) missing → Phase 2
+2. `.agents/TODO-PLAN.md` missing → Phase 3
 3. `justfile` missing → Phase 4
 4. `AGENTS.md` missing or bloated → Phase 4d
 5. `just check && just test` failing → Phase 5
@@ -55,7 +55,7 @@ Run before any action. Do not skip, even on explicit "set up a workspace".
 
    ```bash
    mkdir -p .agent
-   mv SPEC.md .agent/SPEC.md
+   mv SPEC.md .agents/SPEC.md
    ```
 
 ## Phase 3: TODO-PLAN.md
@@ -118,8 +118,8 @@ Boundaries:
 - This list is not exhaustive: any principle you know beyond it that serves this project better gets the same treatment (reason, apply, distill)
 
 ```bash
-mv TODO-PLAN.md .agent/TODO-PLAN.md
-echo ".agent/" >> .gitignore
+mv TODO-PLAN.md .agents/TODO-PLAN.md
+echo ".agents/" >> .gitignore
 ```
 
 ## Phase 4: Environment
@@ -167,7 +167,7 @@ Dev dependencies (4b picks):
     npm install --save-dev <4b picks>   # TypeScript
 
 
-.gitignore: language patterns (`__pycache__/`, `node_modules/`, `target/`, `vendor/`, `.env`, `*.local`, ...); must include `.agent/` and `AGENTS.md`.
+.gitignore: language patterns (`__pycache__/`, `node_modules/`, `target/`, `vendor/`, `.env`, `*.local`, ...); must include `.agents/` and `AGENTS.md`.
 
 ### 4d. AGENTS.md (required)
 
@@ -196,9 +196,9 @@ All pass before proceeding, plus every recipe adopted from 4b (smoke, audit, ...
 ## Phase 7: Verify Setup
 
 1. cwd is the project dir
-2. `.agent/SPEC.md`: overview, goals, EARS requirements (prioritized), success criteria, architecture, file breakdown, dependencies, tests, risks; ends with end-to-end verification
-3. `.agent/TODO-PLAN.md`: phased checkboxes, progress bar
-4. `.gitignore`: `.agent/`, `AGENTS.md`, language patterns
+2. `.agents/SPEC.md`: overview, goals, EARS requirements (prioritized), success criteria, architecture, file breakdown, dependencies, tests, risks; ends with end-to-end verification
+3. `.agents/TODO-PLAN.md`: phased checkboxes, progress bar
+4. `.gitignore`: `.agents/`, `AGENTS.md`, language patterns
 5. `justfile`: the six core recipes plus one per adopted 4b extended role
 6. every `just` recipe chosen passes (`fmt`, `check`, `test` extra )
 7. Git repo, at least one commit
@@ -218,7 +218,7 @@ Explain the loop with this project's actual recipes:
 
 Then ask: "Is that exactly this project's loop? Anything to add, remove, rearrange?" Adjust until confirmed.
 
-Last: tell the user to review `.agent/SPEC.md` and `.agent/TODO-PLAN.md` thoroughly, requirements to task order, and confirm or request changes. No implementation starts until both are approved.
+Last: tell the user to review `.agents/SPEC.md` and `.agents/TODO-PLAN.md` thoroughly, requirements to task order, and confirm or request changes. No implementation starts until both are approved.
 
 Setup ends here.
 

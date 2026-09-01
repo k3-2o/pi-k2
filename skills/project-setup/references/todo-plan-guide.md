@@ -5,7 +5,7 @@ A todo list with the plan inside it. Phases are the plan; tasks are the plan mad
 ## Format
 
     # TODO-PLAN: <project>
-    Goal: <one line>. Spec: .agent/SPEC.md
+    Goal: <one line>. Spec: .agents/SPEC.md
 
     ## Phase 1: Setup
     Goal: <one line>
