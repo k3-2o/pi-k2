@@ -1,7 +1,6 @@
 ---
 name: adversarial-audit
-description: "Three-leg code audit with gated procedures. Leg 1 runs an adversarial forensic read (window-by-window, 9 axes, advance-gate, dismissal review, refinement pass) to find bugs and logic errors. Leg 2 applies clean minimal fixes through a 7-phase gated fix procedure (root-cause gate, classification gate, test-output gate, self-review gate). Leg 3 (advisory) recommends codebase intelligence tools based on project size. Use when: reviewing a codebase for bugs and vulnerabilities, enforcing code quality standards, cleaning up AI-generated code, or refactoring for long-term maintainability."
-compatibility: "Requires: git and test suite access. Leg 1 uses reasoning + windowed read only. Leg 2 requires write access. Leg 3 (optional) may need tool installation; ask the user first."
+description: "Adversarial three-leg code audit: hunt bugs and vulnerabilities in a forensic read, fix them clean, get advisory tooling picks. Use when reviewing a codebase before a merge or release, enforcing quality standards, cleaning up AI-generated code, hardening security-sensitive paths, or refactoring for long-term maintainability."
 ---
 
 # Adversarial Audit

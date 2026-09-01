@@ -1,12 +1,13 @@
 ---
 name: project-setup
-description: "Bootstrap or resume project workspaces: pre-check discussion, workspace dir in ~/.workspaces/, SPEC.md (EARS), TODO-PLAN.md, AGENT.md (rules, principles, references; no prose), just-based fmt/lint/check/test pipeline, pipeline verify, initial git commit, LOOP debrief. Use when asked to set up a workspace, bootstrap a project, init a new project, prepare the environment, or resume work. Always runs a pre-check first."
-compatibility: "Requires just (command runner); install via system package manager or ask user if missing. Any language: Python/uv, TypeScript/npm, Rust/cargo, Go, etc."
+description: "Bootstrap or resume a project workspace: pre-check first, then SPEC.md, TODO-PLAN.md, AGENTS.md, a just fmt/lint/check/test pipeline, initial git commit, and a debrief — everything is a user iteration, the user actively involved in every phase. Use when starting a project from scratch, setting up a workspace, preparing a dev environment, or resuming existing work."
 ---
 
 # Workspace Bootstrap
 
 write → just (fmt lint check test) → docs → commit → repeat
+
+Everything is a user iteration: the user is an active participant, never passive. They have a say in every phase — the two of you iterate over the work together.
 
 ## Workflow
 
@@ -26,7 +27,7 @@ Project dir already has work? Run in order; fill the first gap found; never rege
 1. `.agent/SPEC.md` (or project root) missing → Phase 2
 2. `.agent/TODO-PLAN.md` missing → Phase 3
 3. `justfile` missing → Phase 4
-4. `AGENT.md` missing or bloated → Phase 4d
+4. `AGENTS.md` missing or bloated → Phase 4d
 5. `just check && just test` failing → Phase 5
 6. Git not initialized → Phase 6
 7. All green → Phase 7
@@ -62,7 +63,7 @@ Run before any action. Do not skip, even on explicit "set up a workspace".
 1. Read [references/todo-plan-guide.md](references/todo-plan-guide.md). Required before writing.
 2. Write `TODO-PLAN.md` per the guide: a todo list with the plan inside it. Every implementation task pairs with a `[ ] Write tests for ...` task.
 
-Principles to iterate over and reason about based on the project's nature. Weigh each against what the project actually is; distill the ones that apply into SPEC.md, TODO-PLAN.md, and AGENT.md (the enforced subset):
+Principles to iterate over and reason about based on the project's nature. Weigh each against what the project actually is; distill the ones that apply into SPEC.md, TODO-PLAN.md, and AGENTS.md (the enforced subset):
 
 Design:
 
@@ -105,6 +106,7 @@ Process:
 - One change per commit: refactor or feature, never both at once
 - Measure before optimizing: intuition about hot paths is wrong
 - No test theater, no Potemkin code: tests prove behavior; implementations do the work
+- Human approval gates: propose a draft with why before acting on shared artifacts; the user approves, edits, or rejects — never act unilaterally
 
 Boundaries:
 
@@ -132,7 +134,7 @@ bash scripts/preflight.sh   # checks just, git; install missing or ask
 
 ### 4b. Stack: pick the tools together
 
-One exact, ecosystem-standard tool per role, from the Phase 0 language set. Pin the version. Present the picks, judge together with the user, land them in SPEC.md and TODO-PLAN.md. Multi-role tools (ruff, biome) count once.
+One exact, ecosystem-standard tool per role, from the Phase 0 language set. Pin the version. Ask questions before anything; then lay out all viable candidates per role, one line of why each, recommendation marked — the user picks. Nothing lands in the justfile, SPEC.md, or TODO-PLAN.md until picked. Multi-role tools (ruff, biome) count once.
 
 Core roles:
 
@@ -148,7 +150,7 @@ Extended roles. Raise them, judge together, adopt only what this project needs:
 - Hygiene: spell check (codespell, cspell); dead code (vulture, ts-prune, unused); AST grep
 - Recipes: smoke test (`tool --version && tool --help`), `clean`, `setup`, `outdated`, `release`
 - Process: lockfile commits, CHANGELOG.md, pre-commit hooks running `just check`
-- This list is not exhaustive: any tool you know beyond it that serves a role better gets the same treatment (raise it, judge together, adopt, land in SPEC.md and TODO-PLAN.md)
+- This list is not exhaustive: any tool you know beyond it that serves a role better gets the same treatment (raise it, lay out the candidates with why, the user picks, land in SPEC.md and TODO-PLAN.md)
 
 ### 4c. Scaffold: init, deps, justfile, .gitignore
 
@@ -165,14 +167,16 @@ Dev dependencies (4b picks):
     npm install --save-dev <4b picks>   # TypeScript
 
 
-.gitignore: language patterns (`__pycache__/`, `node_modules/`, `target/`, `vendor/`, `.env`, `*.local`, ...); must include `.agent/` and `AGENT.md`.
+.gitignore: language patterns (`__pycache__/`, `node_modules/`, `target/`, `vendor/`, `.env`, `*.local`, ...); must include `.agent/` and `AGENTS.md`.
 
-### 4d. AGENT.md (required)
+### 4d. AGENTS.md (required)
 
-Read [references/agent-md-guide.md](references/agent-md-guide.md). Required before writing or touching it. Write or repair at project root per the guide; Principles section = enforced subset of the Phase 3 reminder.
+Read [references/agents-md-guide.md](references/agents-md-guide.md). Required before writing or touching it. Write or repair at project root per the guide; Principles section = enforced subset of the Phase 3 reminder.
+
+Gate (same weight as SPEC.md and asking questions): never write, modify, or commit AGENTS.md unilaterally. Ask questions first, then propose a full draft with why for every choice. The user approves, rejects, or edits it themselves; iterate until they accept. Only then write the file.
 
 ```bash
-echo "AGENT.md" >> .gitignore
+echo "AGENTS.md" >> .gitignore
 ```
 
 ## Phase 5: Pipeline Verify
@@ -194,11 +198,11 @@ All pass before proceeding, plus every recipe adopted from 4b (smoke, audit, ...
 1. cwd is the project dir
 2. `.agent/SPEC.md`: overview, goals, EARS requirements (prioritized), success criteria, architecture, file breakdown, dependencies, tests, risks; ends with end-to-end verification
 3. `.agent/TODO-PLAN.md`: phased checkboxes, progress bar
-4. `.gitignore`: `.agent/`, `AGENT.md`, language patterns
+4. `.gitignore`: `.agent/`, `AGENTS.md`, language patterns
 5. `justfile`: the six core recipes plus one per adopted 4b extended role
 6. every `just` recipe chosen passes (`fmt`, `check`, `test` extra )
 7. Git repo, at least one commit
-8. `AGENT.md` at root: rules/principles/workflow/references only
+8. `AGENTS.md` at root: rules/principles/workflow/references only
 
 Fix anything missing or broken before proceeding.
 
@@ -209,7 +213,7 @@ Explain the loop with this project's actual recipes:
     write → just [recipes] → docs → commit → repeat
 
 - Failure path: auto-fix where possible, else manual fix, re-run
-- Docs: TODO-PLAN.md ticked every cycle; SPEC.md on scope/decision change; AGENT.md on rule/convention change
+- Docs: TODO-PLAN.md ticked every cycle; SPEC.md on scope/decision change; AGENTS.md on rule/convention change
 - Commit only when checks pass and docs are current
 
 Then ask: "Is that exactly this project's loop? Anything to add, remove, rearrange?" Adjust until confirmed.
@@ -222,5 +226,5 @@ Setup ends here.
 
 - [references/spec-guide.md](references/spec-guide.md): EARS spec format. Read before Phase 2.
 - [references/todo-plan-guide.md](references/todo-plan-guide.md): TODO-PLAN format. Read before Phase 3.
-- [references/agent-md-guide.md](references/agent-md-guide.md): AGENT.md format. Read before Phase 4d.
+- [references/agents-md-guide.md](references/agents-md-guide.md): AGENTS.md format. Read before Phase 4d.
 - [scripts/preflight.sh](scripts/preflight.sh): checks just, git. Run at Phase 4 start.

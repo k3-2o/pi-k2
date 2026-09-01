@@ -1,4 +1,6 @@
-# AGENT.md Guide
+# AGENTS.md Guide
+
+Draft it, then iterate over it with the user to fortify it — propose with why; the user approves, rejects, or edits; nothing applies unilaterally.
 
 ## Format
 
@@ -16,7 +18,8 @@ Four sections, in order:
 - Under 60 lines
 - Docs contradict the project state → update the docs that same cycle; state why at the change
 - Point to docs; never duplicate them
-- Project root, `AGENT.md`, in `.gitignore`
+- Every change goes through the user: the agent proposes a draft with why; the user approves, rejects, or edits it before it applies — never change this file unilaterally
+- Project root, `AGENTS.md`, in `.gitignore`
 
 ## Belongs
 
@@ -25,6 +28,7 @@ Four sections, in order:
 - Conventions that differ from defaults
 - Test and code rules: tests assert real behavior against the code's fabric; no test theater; no Potemkin implementations (code that only looks like it does the work)
 - Comment and docstring policy
+- The iteration gate: changes to this file are proposed as a draft with why; applied only after the user approves or edits it
 - This project's loop
 - Boundaries ("no new deps without updating SPEC.md")
 - Pointers to docs

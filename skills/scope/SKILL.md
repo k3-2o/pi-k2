@@ -1,6 +1,6 @@
 ---
 name: scope
-description: "Codebase orientation radar. Emits JSON only: a compact per-file map (language, top symbols by importance, role counts, anomalies) by default, with --full for every symbol plus read order and blast radius. Use when: just landed in an unfamiliar codebase and need the top 3-5 most important files/symbols without reading everything; given an open-ended task spanning modules and need the project map first; about to edit or rename a shared symbol and need to know what depends on it; or judging whether a structural refactor touched high-risk code. Trigger words: orient, explore, overview, map codebase, understand file, code structure, file summary, radar, unfamiliar repo, critical path, read order."
+description: "Codebase orientation radar emitting JSON: a compact per-file map (language, top symbols, roles, anomalies), or every symbol plus read order and blast radius with --full. Use when you land in an unfamiliar codebase, before editing or renaming a shared symbol, or to judge refactor impact. Trigger words: orient, explore, overview, map codebase, understand file, code structure, file summary, radar, unfamiliar repo, critical path, read order."
 compatibility: "Requires Python 3.11+ and `uv`. Install: `uv tool install` from the scope repo root."
 ---
 

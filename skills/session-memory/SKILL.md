@@ -14,8 +14,7 @@ Each line is a node in one tree, linked `id` → `parentId`:
     └─ message[user] → message[assistant] → message[toolResult] → …
        (tool loops nest deeper)
 
-`session_info {name}` / `compaction {summary}` attach anywhere. Compacted
-spans are gone — only summaries survive.
+`session_info {name}` / `compaction {summary}` attach anywhere.
 
 ## Traps (why a naive grep loses)
 
@@ -41,10 +40,9 @@ spans are gone — only summaries survive.
    tighter the terms are packed (min line span) the better, then volume,
    then recency. Cap ~10 sessions. Print the top hits WITH their matched
    lines — never rank blind.
-3. **Confirm** with `session_info.name` / `compaction.summary`.
-4. **Read as turns** `[HH:MM] role: text`, ~300 chars each. Widen one window
+3. **Read as turns** `[HH:MM] role: text`, ~200 chars each. Widen one window
    at a time (≤5 lines before/after). Never dump raw lines or a whole session.
-5. **Miss → loop back:** next tier of ranked sessions, relax the cap per file,
+4. **Miss → loop back:** next tier of ranked sessions, relax the cap per file,
    try variant terms (2-3 passes is normal). Triage/eviction sessions name
    what they deleted — search them for the topic. Dead end → ask for better
    terms, never guess.
