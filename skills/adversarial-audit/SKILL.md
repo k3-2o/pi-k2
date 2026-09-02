@@ -20,7 +20,7 @@ Three legs: Leg 1 finds bugs, Leg 2 fixes them clean, Leg 3 (advisory) recommend
 
 ## State: AUDIT-FINDINGS.md
 
-All findings, the inventory, and the accounting live in `AUDIT-FINDINGS.md` at the repo root; add it to `.gitignore`. Sections:
+All findings, the inventory, and the accounting live in `.agents/AUDIT-FINDINGS.md` at the repo root. Create `.agents/` if it doesn't exist; if it isn't git-ignored, add `.agents/` to `.gitignore`. Sections:
 
 - Status block: baseline commit + test counts, progress (N/M fixed), current gate
 - Phase 0 inventory: every file with a one-line responsibility; every cross-file connection
