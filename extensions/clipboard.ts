@@ -57,21 +57,12 @@ function pipeToProcess(cmd: string, args: string[], input: string): Promise<void
 	});
 }
 
-export default function (pi: ExtensionAPI) {
-	pi.registerTool({
+export function createClipboardCopyTool() {
+	return {
 		name: "clipboard_copy",
 		label: "Copy to Clipboard",
-		description:
-			"Copy text to the user's system clipboard. " +
-			"Use this tool when the user says 'copy this', 'copy that output', " +
-			"'put this in my clipboard', or asks you to copy text, code, or results " +
-			"for them to paste elsewhere. " +
-			"Supports xclip (Linux), pbcopy (macOS), and OSC 52 (terminal/SSH/tmux/zellij).",
+		description: "Copy text to the user's system clipboard.",
 		promptSnippet: "Copy text to the user's system clipboard",
-		promptGuidelines: [
-			"Use clipboard_copy when the user asks you to copy text, output, code, or any content to their clipboard.",
-			"Do NOT use clipboard_copy to read the clipboard — this tool only writes. If the user needs paste functionality, ask the extension author explicitly.",
-		],
 		parameters: Type.Object({
 			text: Type.String({ description: "The text to copy to the clipboard" }),
 		}),
@@ -125,5 +116,9 @@ export default function (pi: ExtensionAPI) {
 				};
 			}
 		},
-	});
+	};
+}
+
+export default function (pi: ExtensionAPI) {
+	pi.registerTool(createClipboardCopyTool());
 }
