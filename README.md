@@ -49,20 +49,30 @@
 pi install git:github.com/k3-2o/pi-k2
 ```
 
-Also install the standalone packages:
+Also install the companion projects — separate repos that pi-k2 doesn't encompass but that extend Pi alongside it:
 
-| Package | Description |
+| Package (repo) | Description |
 |---------|-------------|
-| [`pi-chrollo`](https://github.com/k3-2o/pi-chrollo) | Agentic memory for Pi — verbatim session capture + grep retrieval |
-| [`pi-composio`](https://github.com/k3-2o/pi-composio) | Pi extension — 6 meta tools for 1,000+ app integrations (Gmail, Slack, GitHub, etc.) via Composio's TypeScript SDK |
-| [`pi-move`](https://github.com/k3-2o/pi-move) | Pi extension — `/move` command to switch directories from inside Pi |
-| [`pi-read-image`](https://github.com/k3-2o/pi-read-image) | Local OCR for Pi — extracts text from screenshots and code images |
+| [`pi-chrollo`](https://github.com/k3-2o/pi-chrollo) | Retrieval layer for Pi's native session history — search past conversations, read matched windows. No storage, no capture, no injection. |
+| [`pi-composio`](https://github.com/k3-2o/pi-composio) | Pi extension — 6 tools bridging to Composio's 1,000+ app integrations (Gmail, Slack, GitHub, etc.). No MCP required. |
+| [`pi-move`](https://github.com/k3-2o/pi-move) | Pi extension — `/move` command to switch to a fresh Pi session in any directory. |
+| [`pi-read-image`](https://github.com/k3-2o/pi-read-image) | OCR tool for Pi — extracts text from screenshots, terminal output, and code images (Tesseract + ImageMagick). |
+| [`pi-repl-py`](https://github.com/k3-2o/pi-repl-py) | Pi extension — a single `execute` tool backed by a persistent Python evaluator (a real IPython kernel). |
+| [`pi-semantic-edit`](https://github.com/k3-2o/pi-semantic-edit) | Drop-in replacement for Pi's built-in `edit` — same `edits[]` contract, improved semantics. |
+| [`pi-remote`](https://github.com/k3-2o/pi-remote) | WebSocket-first server runtime for Pi — start it once, talk to Pi from anywhere. |
+| [`pi-streak`](https://github.com/abboskhonov/pi-streak) | Bun terminal contribution chart for Pi session data — GitHub-style calendar rendered from session JSONL files. |
+| [`pi-vimotion`](https://github.com/k3-2o/pi-vimotion) | Modal vim editing for Pi's prompt box — Normal + Insert modes, operators that compose with motions. |
 
 ```bash
 pi install git:github.com/k3-2o/pi-chrollo
 pi install git:github.com/k3-2o/pi-composio
 pi install git:github.com/k3-2o/pi-move
 pi install git:github.com/k3-2o/pi-read-image
+pi install git:github.com/k3-2o/pi-repl-py
+pi install git:github.com/k3-2o/pi-semantic-edit
+pi install git:github.com/k3-2o/pi-remote
+pi install git:github.com/abboskhonov/pi-streak
+pi install git:github.com/k3-2o/pi-vimotion
 ```
 
 ## License
